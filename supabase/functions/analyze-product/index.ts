@@ -44,17 +44,56 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
+    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
+      return new Response(
+        JSON.stringify({ code: 401, message: "Missing JWT" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const jwt = authHeader.split(" ")[1];
+
     const { productId, tenantId } = await req.json();
-    
+
     if (!productId || !tenantId) {
       throw new Error("Product ID and Tenant ID are required");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Admin client (bypasses RLS) + Auth client (validates JWT)
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabaseAuth = createClient(supabaseUrl, anonKey, {
+      global: {
+        headers: { Authorization: `Bearer ${jwt}` },
+      },
+    });
+
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
+    const user = userData?.user;
+
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ code: 401, message: "Invalid JWT" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: hasAccess, error: accessError } = await supabase.rpc(
+      "has_tenant_access",
+      { _tenant_id: tenantId, _user_id: user.id }
+    );
+
+    if (accessError || !hasAccess) {
+      return new Response(
+        JSON.stringify({ code: 403, message: "Forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Fetch product
     const { data: product, error: productError } = await supabase
@@ -137,12 +176,16 @@ serve(async (req) => {
     await supabase.from("analysis_history").insert({
       tenant_id: tenantId,
       product_id: productId,
+      user_id: user.id,
       action_type: "single_analysis",
       input_data: { productName: product.name, personaCount: personas.length },
       results_summary: {
-        averageLikeProbability: scores.reduce((a, b) => a + b.likeProbability, 0) / scores.length,
-        highestMatch: scores.reduce((a, b) => a.likeProbability > b.likeProbability ? a : b).personaName,
-      }
+        averageLikeProbability:
+          scores.reduce((a, b) => a + b.likeProbability, 0) / scores.length,
+        highestMatch: scores.reduce((a, b) =>
+          a.likeProbability > b.likeProbability ? a : b
+        ).personaName,
+      },
     });
 
     return new Response(
