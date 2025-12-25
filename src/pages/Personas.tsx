@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, Users, Sparkles } from "lucide-react";
+import { RefreshCw, Users, Sparkles, Database, FlaskConical } from "lucide-react";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -15,6 +15,7 @@ interface Persona {
   name: string;
   description: string | null;
   avatar_emoji: string;
+  canonical_persona_id?: string;
   segment_code?: string;
   segment_name?: string;
   segment_weight?: number;
@@ -30,21 +31,14 @@ interface Persona {
   digital_behavior?: Json;
   category_affinities?: Json;
   attribute_vector: Json;
+  fit_silhouette_preferences?: Json;
+  fabric_material_preferences?: Json;
+  color_pattern_preferences?: Json;
+  lifecycle_loyalty?: Json;
+  swipe_data_config?: Json;
+  data_source_status?: string;
   is_active: boolean;
 }
-
-const PERSONA_HIGHLIGHTS: Record<string, string[]> = {
-  "Priya Sharma": ["Social media influenced", "Monthly purchase cycle", "Mid-range pricing"],
-  "Ananya Mehta": ["Quality over quantity", "High brand loyalty", "Premium segment"],
-  "Sneha Patel": ["Price-sensitive", "Sale-driven purchases", "Marketplace preference"],
-  "Meera Reddy": ["Occasion-driven", "Cultural blend", "Festive spender"],
-  "Kavya Iyer": ["Fitness-focused", "Performance fabrics", "Brand-conscious active"],
-  "Rahul Kumar": ["Comfort-first approach", "Basics-oriented", "Brand-loyal for fit"],
-  "Arjun Verma": ["Premium brands", "Image-conscious", "High spend capacity"],
-  "Vikram Joshi": ["Drop-culture driven", "Exclusivity seeker", "Trend-setter"],
-  "Aditya Singh": ["Deal-hunter", "Bulk buyer", "COD preference"],
-  "Rohan Kapoor": ["WFH professional", "Versatile wardrobe", "Work-weekend blend"],
-};
 
 const Personas = () => {
   const { tenant } = useTenant();
@@ -95,7 +89,7 @@ const Personas = () => {
 
       toast({
         title: "Personas regenerated",
-        description: `Created ${response.data.personasCreated} enterprise-grade apparel personas`,
+        description: `Created ${response.data.personasCreated} canonical apparel personas with 100+ attributes each`,
       });
 
       loadPersonas();
@@ -121,30 +115,30 @@ const Personas = () => {
 
   const getPriceRange = (persona: Persona) => {
     const behavior = persona.price_behavior as { 
-      comfortPriceTshirtsMin?: number; 
-      comfortPriceTshirtsMax?: number; 
+      comfort_price_band_tshirt?: { min: number; max: number }; 
     };
-    if (behavior?.comfortPriceTshirtsMin && behavior?.comfortPriceTshirtsMax) {
-      return `₹${behavior.comfortPriceTshirtsMin.toLocaleString()} - ${behavior.comfortPriceTshirtsMax.toLocaleString()}`;
+    if (behavior?.comfort_price_band_tshirt) {
+      return `₹${behavior.comfort_price_band_tshirt.min.toLocaleString()} - ${behavior.comfort_price_band_tshirt.max.toLocaleString()}`;
     }
     return "Variable";
   };
 
   const getBrandLoyalty = (persona: Persona) => {
-    const psychology = persona.brand_psychology as { brandLoyaltyScore?: number };
-    const loyalty = psychology?.brandLoyaltyScore || 0.5;
+    const psychology = persona.brand_psychology as { brand_loyalty_strength_to_lovable?: number };
+    const loyalty = psychology?.brand_loyalty_strength_to_lovable || 0.5;
     if (loyalty >= 0.7) return "High";
     if (loyalty >= 0.4) return "Medium";
     return "Low";
   };
 
   const getElasticity = (persona: Persona) => {
-    const behavior = persona.price_behavior as { priceElasticityIndicator?: string };
-    return behavior?.priceElasticityIndicator || "Medium";
+    const behavior = persona.price_behavior as { price_elasticity_category?: string };
+    return behavior?.price_elasticity_category || "medium";
   };
 
-  const getHighlights = (name: string) => {
-    return PERSONA_HIGHLIGHTS[name] || [];
+  const getAgeBand = (persona: Persona) => {
+    const demographics = persona.demographics as { age_band?: string };
+    return demographics?.age_band || "";
   };
 
   if (loading) {
@@ -169,23 +163,47 @@ const Personas = () => {
         <div className="space-y-1">
           <h1 className="text-2xl font-medium tracking-tight">Consumer Personas</h1>
           <p className="text-muted-foreground">
-            Enterprise-grade apparel personas (5 female, 5 male) with 100+ attributes each
+            10 canonical apparel personas (5 female, 5 male) with 100+ attributes each
           </p>
         </div>
-        <Button onClick={regeneratePersonas} disabled={regenerating}>
-          {regenerating ? (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Regenerating...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Regenerate Personas
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="gap-1.5 py-1">
+            <FlaskConical className="w-3 h-3" />
+            <span className="text-xs">Synthetic v0</span>
+          </Badge>
+          <Button onClick={regeneratePersonas} disabled={regenerating}>
+            {regenerating ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Regenerating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Regenerate Personas
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {/* Data Source Banner */}
+      <Card className="border-dashed bg-muted/30">
+        <CardContent className="flex items-center gap-4 py-4">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Database className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium">Data Source: modeled_v0 (Synthetic)</p>
+            <p className="text-xs text-muted-foreground">
+              All persona attributes are hypothesis-driven. Values will be refined with real swipe data from the Tinder-for-fashion app.
+            </p>
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            Awaiting Swipe Data
+          </Badge>
+        </CardContent>
+      </Card>
 
       {personas.length > 0 ? (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -198,36 +216,32 @@ const Personas = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1 min-w-0">
-                    <CardTitle className="text-base font-medium truncate">{persona.name}</CardTitle>
-                    <CardDescription className="text-[10px] font-medium uppercase tracking-wide line-clamp-1">
-                      {persona.segment_name || "Consumer Persona"}
-                    </CardDescription>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{persona.avatar_emoji}</span>
+                      <div>
+                        <CardTitle className="text-sm font-medium truncate">{persona.name}</CardTitle>
+                        <p className="text-[10px] text-muted-foreground">{getAgeBand(persona)}</p>
+                      </div>
+                    </div>
                   </div>
-                  <Badge 
-                    variant={persona.gender === "female" ? "default" : "secondary"} 
-                    className="text-[10px] font-normal shrink-0"
-                  >
-                    {persona.gender === "female" ? "F" : "M"}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge 
+                      variant={persona.gender === "female" ? "default" : "secondary"} 
+                      className="text-[10px] font-normal shrink-0"
+                    >
+                      {persona.gender === "female" ? "F" : "M"}
+                    </Badge>
+                    <Badge variant="outline" className="text-[8px] py-0">
+                      v0
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                   {persona.description}
                 </p>
-                
-                {/* Key Characteristics */}
-                <div className="flex flex-wrap gap-1">
-                  {getHighlights(persona.name).slice(0, 2).map((highlight) => (
-                    <span 
-                      key={highlight} 
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground"
-                    >
-                      {highlight}
-                    </span>
-                  ))}
-                </div>
 
                 {/* Categories */}
                 <div className="space-y-1.5">
@@ -240,7 +254,7 @@ const Personas = () => {
                         key={cat} 
                         className="text-[10px] px-1.5 py-0.5 rounded border border-border text-foreground"
                       >
-                        {cat}
+                        {String(cat).replace(/_/g, " ")}
                       </span>
                     ))}
                   </div>
@@ -297,7 +311,7 @@ const Personas = () => {
             </div>
             <h3 className="font-medium mb-2">No personas configured</h3>
             <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
-              Generate enterprise-grade apparel consumer personas with 100+ attributes for analytics
+              Generate 10 canonical apparel consumer personas with 100+ attributes for analytics and swipe data integration
             </p>
             <Button onClick={regeneratePersonas} disabled={regenerating}>
               {regenerating ? (

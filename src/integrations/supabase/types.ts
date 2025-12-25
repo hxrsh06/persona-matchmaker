@@ -23,9 +23,13 @@ export type Database = {
           id: string
           metro_non_metro_ratio: number | null
           persona_segment_weights: Json | null
+          personalization_lift_overall: number | null
           premium_segment_share: number | null
           price_elasticity_distribution: Json | null
           regional_style_divergence: Json | null
+          return_rate_by_reason: Json | null
+          style_cluster_performance: Json | null
+          swipe_metrics_aggregate: Json | null
           tenant_id: string
           top_channel_breakdown: Json | null
           top_personas_by_revenue: Json | null
@@ -39,9 +43,13 @@ export type Database = {
           id?: string
           metro_non_metro_ratio?: number | null
           persona_segment_weights?: Json | null
+          personalization_lift_overall?: number | null
           premium_segment_share?: number | null
           price_elasticity_distribution?: Json | null
           regional_style_divergence?: Json | null
+          return_rate_by_reason?: Json | null
+          style_cluster_performance?: Json | null
+          swipe_metrics_aggregate?: Json | null
           tenant_id: string
           top_channel_breakdown?: Json | null
           top_personas_by_revenue?: Json | null
@@ -55,9 +63,13 @@ export type Database = {
           id?: string
           metro_non_metro_ratio?: number | null
           persona_segment_weights?: Json | null
+          personalization_lift_overall?: number | null
           premium_segment_share?: number | null
           price_elasticity_distribution?: Json | null
           regional_style_divergence?: Json | null
+          return_rate_by_reason?: Json | null
+          style_cluster_performance?: Json | null
+          swipe_metrics_aggregate?: Json | null
           tenant_id?: string
           top_channel_breakdown?: Json | null
           top_personas_by_revenue?: Json | null
@@ -226,6 +238,39 @@ export type Database = {
           },
         ]
       }
+      metric_catalog: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          formula: Json | null
+          id: string
+          level_of_aggregation: string | null
+          metric_name: string
+          status: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          formula?: Json | null
+          id?: string
+          level_of_aggregation?: string | null
+          metric_name: string
+          status?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          formula?: Json | null
+          id?: string
+          level_of_aggregation?: string | null
+          metric_name?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       persona_analytics: {
         Row: {
           above_median_purchase_pct: number | null
@@ -239,18 +284,30 @@ export type Database = {
           classic_trendy_ratio: number | null
           created_at: string
           cross_category_adoption: number | null
+          elasticity_asymmetry_index: number | null
+          experience_break_point_stage: string | null
           full_price_discount_ratio: number | null
           id: string
+          markdown_dependency_index: number | null
           marketplace_brand_ratio: number | null
           mobile_desktop_ratio: number | null
           neutral_color_bold_ratio: number | null
           online_offline_ratio: number | null
           persona_id: string | null
+          personalization_lift_index: number | null
           price_elasticity_segment: string | null
           repeat_purchase_rate: number | null
           return_rate: number | null
+          sentiment_to_sales_correlation: number | null
+          size_confidence_index: number | null
           solid_prints_ratio: number | null
+          statement_piece_pull_through_rate: number | null
+          style_cluster_resonance_score: number | null
+          swipe_like_rate: number | null
+          swipe_price_sensitivity: number | null
           tenant_id: string
+          trend_adoption_lag_days: number | null
+          willingness_to_pay_bandwidth: Json | null
           wishlist_to_purchase_ratio: number | null
         }
         Insert: {
@@ -265,18 +322,30 @@ export type Database = {
           classic_trendy_ratio?: number | null
           created_at?: string
           cross_category_adoption?: number | null
+          elasticity_asymmetry_index?: number | null
+          experience_break_point_stage?: string | null
           full_price_discount_ratio?: number | null
           id?: string
+          markdown_dependency_index?: number | null
           marketplace_brand_ratio?: number | null
           mobile_desktop_ratio?: number | null
           neutral_color_bold_ratio?: number | null
           online_offline_ratio?: number | null
           persona_id?: string | null
+          personalization_lift_index?: number | null
           price_elasticity_segment?: string | null
           repeat_purchase_rate?: number | null
           return_rate?: number | null
+          sentiment_to_sales_correlation?: number | null
+          size_confidence_index?: number | null
           solid_prints_ratio?: number | null
+          statement_piece_pull_through_rate?: number | null
+          style_cluster_resonance_score?: number | null
+          swipe_like_rate?: number | null
+          swipe_price_sensitivity?: number | null
           tenant_id: string
+          trend_adoption_lag_days?: number | null
+          willingness_to_pay_bandwidth?: Json | null
           wishlist_to_purchase_ratio?: number | null
         }
         Update: {
@@ -291,18 +360,30 @@ export type Database = {
           classic_trendy_ratio?: number | null
           created_at?: string
           cross_category_adoption?: number | null
+          elasticity_asymmetry_index?: number | null
+          experience_break_point_stage?: string | null
           full_price_discount_ratio?: number | null
           id?: string
+          markdown_dependency_index?: number | null
           marketplace_brand_ratio?: number | null
           mobile_desktop_ratio?: number | null
           neutral_color_bold_ratio?: number | null
           online_offline_ratio?: number | null
           persona_id?: string | null
+          personalization_lift_index?: number | null
           price_elasticity_segment?: string | null
           repeat_purchase_rate?: number | null
           return_rate?: number | null
+          sentiment_to_sales_correlation?: number | null
+          size_confidence_index?: number | null
           solid_prints_ratio?: number | null
+          statement_piece_pull_through_rate?: number | null
+          style_cluster_resonance_score?: number | null
+          swipe_like_rate?: number | null
+          swipe_price_sensitivity?: number | null
           tenant_id?: string
+          trend_adoption_lag_days?: number | null
+          willingness_to_pay_bandwidth?: Json | null
           wishlist_to_purchase_ratio?: number | null
         }
         Relationships: [
@@ -327,15 +408,21 @@ export type Database = {
           attribute_vector: Json
           avatar_emoji: string | null
           brand_psychology: Json
+          canonical_persona_id: string | null
           category_affinities: Json | null
+          color_pattern_preferences: Json | null
           created_at: string
+          data_source_status: string | null
           demographics: Json
           description: string | null
           digital_behavior: Json | null
+          fabric_material_preferences: Json | null
           fashion_orientation: Json | null
+          fit_silhouette_preferences: Json | null
           gender: string | null
           id: string
           is_active: boolean | null
+          lifecycle_loyalty: Json | null
           lifestyle: Json | null
           name: string
           price_behavior: Json
@@ -345,6 +432,7 @@ export type Database = {
           segment_name: string | null
           segment_weight: number | null
           shopping_preferences: Json
+          swipe_data_config: Json | null
           tenant_id: string
           updated_at: string
         }
@@ -352,15 +440,21 @@ export type Database = {
           attribute_vector?: Json
           avatar_emoji?: string | null
           brand_psychology?: Json
+          canonical_persona_id?: string | null
           category_affinities?: Json | null
+          color_pattern_preferences?: Json | null
           created_at?: string
+          data_source_status?: string | null
           demographics?: Json
           description?: string | null
           digital_behavior?: Json | null
+          fabric_material_preferences?: Json | null
           fashion_orientation?: Json | null
+          fit_silhouette_preferences?: Json | null
           gender?: string | null
           id?: string
           is_active?: boolean | null
+          lifecycle_loyalty?: Json | null
           lifestyle?: Json | null
           name: string
           price_behavior?: Json
@@ -370,6 +464,7 @@ export type Database = {
           segment_name?: string | null
           segment_weight?: number | null
           shopping_preferences?: Json
+          swipe_data_config?: Json | null
           tenant_id: string
           updated_at?: string
         }
@@ -377,15 +472,21 @@ export type Database = {
           attribute_vector?: Json
           avatar_emoji?: string | null
           brand_psychology?: Json
+          canonical_persona_id?: string | null
           category_affinities?: Json | null
+          color_pattern_preferences?: Json | null
           created_at?: string
+          data_source_status?: string | null
           demographics?: Json
           description?: string | null
           digital_behavior?: Json | null
+          fabric_material_preferences?: Json | null
           fashion_orientation?: Json | null
+          fit_silhouette_preferences?: Json | null
           gender?: string | null
           id?: string
           is_active?: boolean | null
+          lifecycle_loyalty?: Json | null
           lifestyle?: Json | null
           name?: string
           price_behavior?: Json
@@ -395,6 +496,7 @@ export type Database = {
           segment_name?: string | null
           segment_weight?: number | null
           shopping_preferences?: Json
+          swipe_data_config?: Json | null
           tenant_id?: string
           updated_at?: string
         }
