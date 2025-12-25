@@ -139,6 +139,7 @@ export type Database = {
         Row: {
           attribute_vector: Json
           avatar_emoji: string | null
+          brand_psychology: Json
           created_at: string
           demographics: Json
           description: string | null
@@ -155,6 +156,7 @@ export type Database = {
         Insert: {
           attribute_vector?: Json
           avatar_emoji?: string | null
+          brand_psychology?: Json
           created_at?: string
           demographics?: Json
           description?: string | null
@@ -171,6 +173,7 @@ export type Database = {
         Update: {
           attribute_vector?: Json
           avatar_emoji?: string | null
+          brand_psychology?: Json
           created_at?: string
           demographics?: Json
           description?: string | null

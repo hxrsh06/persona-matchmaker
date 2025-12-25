@@ -46,6 +46,17 @@ const BASE_PERSONAS = [
       elasticity: -0.4,
       discountDependence: "medium",
       ltvOrientation: "frequent-low"
+    },
+    brandPsychology: {
+      priceAnchor: "mid-range",
+      expectedPricePoint: 799,
+      brandLoyalty: 0.5,
+      premiumWillingness: 0.4,
+      valuePerception: 0.7,
+      qualityExpectation: 0.6,
+      brandSwitchingTendency: 0.5,
+      priceMemory: 0.6,
+      referencePointSensitivity: 0.5
     }
   },
   {
@@ -86,6 +97,17 @@ const BASE_PERSONAS = [
       elasticity: -0.7,
       discountDependence: "high",
       ltvOrientation: "occasional-high"
+    },
+    brandPsychology: {
+      priceAnchor: "budget-trendy",
+      expectedPricePoint: 499,
+      brandLoyalty: 0.2,
+      premiumWillingness: 0.3,
+      valuePerception: 0.8,
+      qualityExpectation: 0.4,
+      brandSwitchingTendency: 0.9,
+      priceMemory: 0.4,
+      referencePointSensitivity: 0.8
     }
   },
   {
@@ -126,6 +148,17 @@ const BASE_PERSONAS = [
       elasticity: -0.3,
       discountDependence: "low",
       ltvOrientation: "frequent-low"
+    },
+    brandPsychology: {
+      priceAnchor: "value-quality",
+      expectedPricePoint: 749,
+      brandLoyalty: 0.7,
+      premiumWillingness: 0.5,
+      valuePerception: 0.8,
+      qualityExpectation: 0.7,
+      brandSwitchingTendency: 0.3,
+      priceMemory: 0.8,
+      referencePointSensitivity: 0.6
     }
   },
   {
@@ -166,6 +199,17 @@ const BASE_PERSONAS = [
       elasticity: -0.2,
       discountDependence: "low",
       ltvOrientation: "infrequent-high"
+    },
+    brandPsychology: {
+      priceAnchor: "premium",
+      expectedPricePoint: 1299,
+      brandLoyalty: 0.8,
+      premiumWillingness: 0.9,
+      valuePerception: 0.5,
+      qualityExpectation: 0.9,
+      brandSwitchingTendency: 0.2,
+      priceMemory: 0.7,
+      referencePointSensitivity: 0.3
     }
   },
   {
@@ -206,6 +250,17 @@ const BASE_PERSONAS = [
       elasticity: -0.8,
       discountDependence: "high",
       ltvOrientation: "frequent-low"
+    },
+    brandPsychology: {
+      priceAnchor: "budget",
+      expectedPricePoint: 399,
+      brandLoyalty: 0.3,
+      premiumWillingness: 0.1,
+      valuePerception: 0.9,
+      qualityExpectation: 0.5,
+      brandSwitchingTendency: 0.8,
+      priceMemory: 0.9,
+      referencePointSensitivity: 0.9
     }
   }
 ];
@@ -265,6 +320,10 @@ serve(async (req) => {
         price_behavior: {
           ...basePersona.priceBehavior,
           ...expandedAttributes.priceBehavior
+        },
+        brand_psychology: {
+          ...basePersona.brandPsychology,
+          ...expandedAttributes.brandPsychology
         },
         attribute_vector: expandedAttributes.attributeVector,
         is_active: true
@@ -333,6 +392,7 @@ async function expandPersonaAttributes(
   shoppingPreferences: Record<string, any>;
   productPreferences: Record<string, any>;
   priceBehavior: Record<string, any>;
+  brandPsychology: Record<string, any>;
   attributeVector: { name: string; value: number; category: string }[];
 }> {
   
@@ -349,6 +409,7 @@ Psychographics: ${JSON.stringify(basePersona.psychographics)}
 Shopping: ${JSON.stringify(basePersona.shoppingPreferences)}
 Products: ${JSON.stringify(basePersona.productPreferences)}
 Pricing: ${JSON.stringify(basePersona.priceBehavior)}
+Brand Psychology: ${JSON.stringify(basePersona.brandPsychology)}
 
 ${brandContext ? `BRAND CONTEXT: ${brandContext}` : ''}
 
@@ -358,6 +419,7 @@ Generate expanded attributes across these categories:
 3. SHOPPING PREFERENCES (20+ attributes): channel usage scores, price sensitivity, brand loyalty, discovery methods, purchase frequency, cart abandonment factors
 4. PRODUCT PREFERENCES (25+ attributes): category affinity scores, fabric preferences, color preferences, style preferences, size inclusivity needs, feature importance weights
 5. PRICE BEHAVIOR (15+ attributes): elasticity by category, discount response curves, willingness to pay premium for features, seasonal sensitivity
+6. BRAND PSYCHOLOGY (15+ attributes): brand price anchoring, expected price points for this brand, brand loyalty scores, premium willingness, value perception, quality expectation thresholds, brand switching tendency, price memory strength, reference point sensitivity
 
 Return normalized attribute vectors (0-1 scale) for ML scoring compatibility.`;
 
@@ -401,6 +463,10 @@ Return normalized attribute vectors (0-1 scale) for ML scoring compatibility.`;
                 type: "object",
                 description: "Expanded price sensitivity attributes"
               },
+              brandPsychology: {
+                type: "object",
+                description: "Brand psychology attributes including price anchoring, expected price points, brand loyalty, premium willingness, value perception, quality expectations"
+              },
               attributeVector: {
                 type: "array",
                 items: {
@@ -414,7 +480,7 @@ Return normalized attribute vectors (0-1 scale) for ML scoring compatibility.`;
                 description: "Normalized attribute vector for ML (100+ items)"
               }
             },
-            required: ["demographics", "psychographics", "shoppingPreferences", "productPreferences", "priceBehavior", "attributeVector"]
+            required: ["demographics", "psychographics", "shoppingPreferences", "productPreferences", "priceBehavior", "brandPsychology", "attributeVector"]
           }
         }
       }],
@@ -431,6 +497,7 @@ Return normalized attribute vectors (0-1 scale) for ML scoring compatibility.`;
       shoppingPreferences: {},
       productPreferences: {},
       priceBehavior: {},
+      brandPsychology: {},
       attributeVector: generateDefaultAttributeVector(basePersona)
     };
   }
@@ -439,7 +506,16 @@ Return normalized attribute vectors (0-1 scale) for ML scoring compatibility.`;
   const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
   
   if (toolCall?.function?.arguments) {
-    return JSON.parse(toolCall.function.arguments);
+    const parsed = JSON.parse(toolCall.function.arguments);
+    return {
+      demographics: parsed.demographics || {},
+      psychographics: parsed.psychographics || {},
+      shoppingPreferences: parsed.shoppingPreferences || {},
+      productPreferences: parsed.productPreferences || {},
+      priceBehavior: parsed.priceBehavior || {},
+      brandPsychology: parsed.brandPsychology || {},
+      attributeVector: parsed.attributeVector || generateDefaultAttributeVector(basePersona)
+    };
   }
 
   return {
@@ -448,6 +524,7 @@ Return normalized attribute vectors (0-1 scale) for ML scoring compatibility.`;
     shoppingPreferences: {},
     productPreferences: {},
     priceBehavior: {},
+    brandPsychology: {},
     attributeVector: generateDefaultAttributeVector(basePersona)
   };
 }
@@ -472,12 +549,25 @@ function generateDefaultAttributeVector(basePersona: typeof BASE_PERSONAS[0]) {
   vector.push({ name: "prefers_lace", value: basePersona.productPreferences.fabricPreferences.includes("lace") ? 0.8 : 0.2, category: "product" });
   vector.push({ name: "prefers_wireless", value: basePersona.productPreferences.wirePreference === "non-wired" ? 0.9 : 0.4, category: "product" });
   
+  // Brand psychology attributes
+  vector.push({ name: "brand_loyalty", value: basePersona.brandPsychology.brandLoyalty, category: "brand_psychology" });
+  vector.push({ name: "premium_willingness", value: basePersona.brandPsychology.premiumWillingness, category: "brand_psychology" });
+  vector.push({ name: "value_perception", value: basePersona.brandPsychology.valuePerception, category: "brand_psychology" });
+  vector.push({ name: "quality_expectation", value: basePersona.brandPsychology.qualityExpectation, category: "brand_psychology" });
+  vector.push({ name: "brand_switching_tendency", value: basePersona.brandPsychology.brandSwitchingTendency, category: "brand_psychology" });
+  vector.push({ name: "price_memory", value: basePersona.brandPsychology.priceMemory, category: "brand_psychology" });
+  vector.push({ name: "reference_point_sensitivity", value: basePersona.brandPsychology.referencePointSensitivity, category: "brand_psychology" });
+  
+  // Normalize expected price point (assuming max 2000 INR for normalization)
+  const normalizedPriceExpectation = Math.min(basePersona.brandPsychology.expectedPricePoint / 2000, 1);
+  vector.push({ name: "expected_price_point_normalized", value: normalizedPriceExpectation, category: "brand_psychology" });
+  
   // Add more default attributes to reach ~50
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 35; i++) {
     vector.push({
       name: `attribute_${i}`,
       value: Math.random() * 0.6 + 0.2,
-      category: ["demographics", "psychographics", "shopping", "product", "price"][i % 5]
+      category: ["demographics", "psychographics", "shopping", "product", "price", "brand_psychology"][i % 6]
     });
   }
   
