@@ -96,7 +96,7 @@ const Personas = () => {
   };
 
   const getAttributeCount = (persona: Persona) => {
-    return persona.attribute_vector?.length || 0;
+    return Array.isArray(persona.attribute_vector) ? persona.attribute_vector.length : 0;
   };
 
   const getTopCategories = (persona: Persona) => {

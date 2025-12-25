@@ -14,18 +14,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import type { Json } from "@/integrations/supabase/types";
 
 interface Persona {
   id: string;
   name: string;
   description: string | null;
   avatar_emoji: string;
-  demographics: Record<string, unknown>;
-  psychographics: Record<string, unknown>;
-  shopping_preferences: Record<string, unknown>;
-  product_preferences: Record<string, unknown>;
-  price_behavior: Record<string, unknown>;
-  attribute_vector: { name: string; value: number; category: string }[];
+  demographics: Json;
+  psychographics: Json;
+  shopping_preferences: Json;
+  product_preferences: Json;
+  price_behavior: Json;
+  attribute_vector: Json;
 }
 
 interface PersonaDetailSheetProps {
@@ -36,7 +37,9 @@ interface PersonaDetailSheetProps {
 const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
   if (!persona) return null;
 
-  const renderAttributes = (obj: Record<string, unknown>, depth = 0): JSX.Element[] => {
+  const renderAttributes = (obj: Json, depth = 0): JSX.Element[] => {
+    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return [];
+    
     return Object.entries(obj).map(([key, value]) => {
       const label = key.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim();
       
@@ -45,7 +48,7 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
           <div key={key} className="space-y-2">
             <p className="font-medium text-sm capitalize">{label}</p>
             <div className="pl-3 border-l border-border/50 space-y-2">
-              {renderAttributes(value as Record<string, unknown>, depth + 1)}
+              {renderAttributes(value as Json, depth + 1)}
             </div>
           </div>
         );
@@ -75,11 +78,15 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
     });
   };
 
-  const groupedAttributes = persona.attribute_vector?.reduce((acc, attr) => {
+  const attributeVector = Array.isArray(persona.attribute_vector) 
+    ? persona.attribute_vector as { name: string; value: number; category: string }[]
+    : [];
+  
+  const groupedAttributes = attributeVector.reduce((acc, attr) => {
     if (!acc[attr.category]) acc[attr.category] = [];
     acc[attr.category].push(attr);
     return acc;
-  }, {} as Record<string, typeof persona.attribute_vector>);
+  }, {} as Record<string, { name: string; value: number; category: string }[]>);
 
   return (
     <Sheet open={!!persona} onOpenChange={() => onClose()}>
@@ -89,8 +96,8 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
             <span className="text-5xl">{persona.avatar_emoji}</span>
             <div>
               <SheetTitle className="text-xl">{persona.name}</SheetTitle>
-              <SheetDescription>
-                {persona.attribute_vector?.length || 0} normalized attributes
+          <SheetDescription>
+                {attributeVector.length} normalized attributes
               </SheetDescription>
             </div>
           </div>
