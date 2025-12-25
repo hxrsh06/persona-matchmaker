@@ -7,7 +7,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.generate-personas]
-verify_jwt = true
+verify_jwt = false
 
 [functions.what-if-simulation]
 verify_jwt = true
