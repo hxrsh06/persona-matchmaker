@@ -262,6 +262,57 @@ const BASE_PERSONAS = [
       priceMemory: 0.9,
       referencePointSensitivity: 0.9
     }
+  },
+  {
+    name: "Fashion-Forward Professional",
+    emoji: "👠",
+    baseDescription: "Style-conscious working woman who balances fashion trends with professional requirements",
+    demographics: {
+      ageRange: "26-35",
+      incomeRange: "40000-80000",
+      cityTier: "Metro",
+      relationship: "varies",
+      household: "alone/partner"
+    },
+    psychographics: {
+      coreValues: ["style", "confidence", "versatility"],
+      lifestyle: "Corporate career, active social life, fitness enthusiast",
+      fashionOrientation: "fashion-aware",
+      modestySensitivity: "medium-low"
+    },
+    shoppingPreferences: {
+      channel: ["online", "brand websites", "premium retail"],
+      triggers: ["new collections", "seasonal trends", "influencer recommendations"],
+      basketBehavior: "curated purchases",
+      returnTolerance: "medium"
+    },
+    productPreferences: {
+      categories: ["push-up", "plunge", "lace bralette", "matching sets"],
+      fabricPreferences: ["lace", "satin", "modal", "microfiber"],
+      colorPreferences: ["black", "wine", "emerald", "nudes"],
+      coveragePreference: "medium",
+      supportPreference: "medium-high",
+      wirePreference: "both"
+    },
+    priceBehavior: {
+      braRange: [899, 1499],
+      pantyRange: [249, 499],
+      setRange: [1099, 1999],
+      elasticity: -0.35,
+      discountDependence: "medium-low",
+      ltvOrientation: "moderate-high"
+    },
+    brandPsychology: {
+      priceAnchor: "mid-premium",
+      expectedPricePoint: 1099,
+      brandLoyalty: 0.6,
+      premiumWillingness: 0.7,
+      valuePerception: 0.6,
+      qualityExpectation: 0.75,
+      brandSwitchingTendency: 0.4,
+      priceMemory: 0.5,
+      referencePointSensitivity: 0.4
+    }
   }
 ];
 
@@ -271,7 +322,7 @@ serve(async (req) => {
   }
 
   try {
-    const { tenantId, customizeForBrand } = await req.json();
+    const { tenantId, customizeForBrand, brandSegment, priceRange } = await req.json();
     
     if (!tenantId) {
       throw new Error("Tenant ID is required");
@@ -283,7 +334,14 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Generating personas for tenant ${tenantId}`);
+    // Build brand context for AI
+    const brandContext = {
+      name: customizeForBrand || "Generic Brand",
+      segment: brandSegment || "premium",
+      priceRange: priceRange || { min: 500, max: 1500 },
+    };
+
+    console.log(`Generating 6 personas for tenant ${tenantId} (${brandContext.segment} segment)`);
 
     const generatedPersonas = [];
 
@@ -291,7 +349,7 @@ serve(async (req) => {
       // Use AI to expand to 100+ attributes
       const expandedAttributes = await expandPersonaAttributes(
         basePersona, 
-        customizeForBrand,
+        brandContext,
         lovableApiKey
       );
 
@@ -384,7 +442,7 @@ serve(async (req) => {
 
 async function expandPersonaAttributes(
   basePersona: typeof BASE_PERSONAS[0],
-  brandContext: string | undefined,
+  brandContext: { name: string; segment: string; priceRange: { min: number; max: number } },
   apiKey: string
 ): Promise<{
   demographics: Record<string, any>;
@@ -411,7 +469,10 @@ Products: ${JSON.stringify(basePersona.productPreferences)}
 Pricing: ${JSON.stringify(basePersona.priceBehavior)}
 Brand Psychology: ${JSON.stringify(basePersona.brandPsychology)}
 
-${brandContext ? `BRAND CONTEXT: ${brandContext}` : ''}
+BRAND CONTEXT:
+- Brand Name: ${brandContext.name}
+- Brand Segment: ${brandContext.segment} (${brandContext.segment === 'lite' ? 'budget-friendly, value-focused' : brandContext.segment === 'premium' ? 'quality-driven, mid-to-high pricing' : brandContext.segment === 'luxury' ? 'high-end, exclusive' : 'trendy, youth-focused'})
+- Price Range: ₹${brandContext.priceRange.min} - ₹${brandContext.priceRange.max}
 
 Generate expanded attributes across these categories:
 1. DEMOGRAPHICS (20+ attributes): age distribution, income percentiles, education, occupation type, urban/rural split, family composition, etc.
