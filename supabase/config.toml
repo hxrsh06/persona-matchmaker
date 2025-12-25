@@ -4,16 +4,16 @@ project_id = "jahlyvuxftafdwssgkyd"
 verify_jwt = false
 
 [functions.extract-image-features]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-personas]
 verify_jwt = false
 
 [functions.what-if-simulation]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-analytics-insights]
-verify_jwt = true
+verify_jwt = false
 
 [functions.regenerate-apparel-personas]
-verify_jwt = true
+verify_jwt = false
