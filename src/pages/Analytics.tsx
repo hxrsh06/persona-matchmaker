@@ -4,6 +4,7 @@ import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -11,9 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, TrendingUp, Target, Users, Package } from "lucide-react";
+import { BarChart3, TrendingUp, Target, Users, Package, Palette, DollarSign, Sparkles } from "lucide-react";
 import AnalyticsCharts from "@/components/analytics/AnalyticsCharts";
 import WhatIfSimulator from "@/components/analytics/WhatIfSimulator";
+import StyleClusterAnalytics from "@/components/analytics/StyleClusterAnalytics";
+import PriceIntelligenceDashboard from "@/components/analytics/PriceIntelligenceDashboard";
+import PersonaDeepDive from "@/components/analytics/PersonaDeepDive";
+import AIInsightsPanel from "@/components/analytics/AIInsightsPanel";
 
 interface AnalyticsSummary {
   totalProducts: number;
@@ -32,6 +37,7 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     if (tenant) {
@@ -184,128 +190,176 @@ const Analytics = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">Performance insights and what-if simulations</p>
+        <p className="text-muted-foreground">Performance insights, price intelligence, and AI-powered recommendations</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card) => (
-          <Card key={card.title} className="border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {card.title}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="style" className="flex items-center gap-2">
+            <Palette className="w-4 h-4" />
+            <span className="hidden sm:inline">Style & Trends</span>
+          </TabsTrigger>
+          <TabsTrigger value="price" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Price Intel</span>
+          </TabsTrigger>
+          <TabsTrigger value="personas" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Personas</span>
+          </TabsTrigger>
+          <TabsTrigger value="simulations" className="flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            <span className="hidden sm:inline">Simulations</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {statCards.map((card) => (
+              <Card key={card.title} className="border-border/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {card.title}
+                  </CardTitle>
+                  <card.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{card.value}</div>
+                  {card.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Top Products */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  Top Performing Products
+                </CardTitle>
+                <CardDescription>Highest average persona match scores</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {summary?.topPerformingProducts && summary.topPerformingProducts.length > 0 ? (
+                  <div className="space-y-3">
+                    {summary.topPerformingProducts.map((product, i) => (
+                      <div key={product.id} className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{product.name}</p>
+                        </div>
+                        <Badge variant="secondary">{Math.round(product.avgScore)}%</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No analyzed products yet
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Persona Performance */}
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Persona Performance
+                </CardTitle>
+                <CardDescription>Average match scores by persona</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {summary?.personaPerformance && summary.personaPerformance.length > 0 ? (
+                  <div className="space-y-3">
+                    {summary.personaPerformance.map((persona) => (
+                      <div key={persona.name} className="flex items-center gap-3">
+                        <span className="text-2xl">{persona.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{persona.name}</p>
+                        </div>
+                        <Badge variant="secondary">{Math.round(persona.avgScore)}%</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No persona data yet
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts Section */}
+          <AnalyticsCharts 
+            topProducts={summary?.topPerformingProducts || []}
+            personaPerformance={summary?.personaPerformance || []}
+          />
+
+          {/* AI Insights Panel */}
+          <AIInsightsPanel />
+        </TabsContent>
+
+        {/* Style & Trends Tab */}
+        <TabsContent value="style" className="space-y-6">
+          <StyleClusterAnalytics />
+        </TabsContent>
+
+        {/* Price Intelligence Tab */}
+        <TabsContent value="price" className="space-y-6">
+          <PriceIntelligenceDashboard />
+        </TabsContent>
+
+        {/* Personas Tab */}
+        <TabsContent value="personas" className="space-y-6">
+          <PersonaDeepDive />
+        </TabsContent>
+
+        {/* Simulations Tab */}
+        <TabsContent value="simulations" className="space-y-6">
+          <Card className="border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                What-If Price Simulator
               </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
+              <CardDescription>
+                Explore how price changes affect persona match probabilities and expected revenue
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              {card.description && (
-                <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
-              )}
+              <div className="space-y-4">
+                <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                  <SelectTrigger className="max-w-sm">
+                    <SelectValue placeholder="Select a product to simulate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {selectedProduct && <WhatIfSimulator productId={selectedProduct} />}
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Top Products */}
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              Top Performing Products
-            </CardTitle>
-            <CardDescription>Highest average persona match scores</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {summary?.topPerformingProducts && summary.topPerformingProducts.length > 0 ? (
-              <div className="space-y-3">
-                {summary.topPerformingProducts.map((product, i) => (
-                  <div key={product.id} className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{product.name}</p>
-                    </div>
-                    <Badge variant="secondary">{Math.round(product.avgScore)}%</Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No analyzed products yet
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Persona Performance */}
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              Persona Performance
-            </CardTitle>
-            <CardDescription>Average match scores by persona</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {summary?.personaPerformance && summary.personaPerformance.length > 0 ? (
-              <div className="space-y-3">
-                {summary.personaPerformance.map((persona) => (
-                  <div key={persona.name} className="flex items-center gap-3">
-                    <span className="text-2xl">{persona.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{persona.name}</p>
-                    </div>
-                    <Badge variant="secondary">{Math.round(persona.avgScore)}%</Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No persona data yet
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <AnalyticsCharts 
-        topProducts={summary?.topPerformingProducts || []}
-        personaPerformance={summary?.personaPerformance || []}
-      />
-
-      {/* What-If Simulator */}
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            What-If Price Simulator
-          </CardTitle>
-          <CardDescription>
-            Explore how price changes affect persona match probabilities
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-              <SelectTrigger className="max-w-sm">
-                <SelectValue placeholder="Select a product to simulate" />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {selectedProduct && <WhatIfSimulator productId={selectedProduct} />}
-          </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

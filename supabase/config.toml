@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.what-if-simulation]
 verify_jwt = true
+
+[functions.generate-analytics-insights]
+verify_jwt = true
