@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { TenantProvider } from "@/hooks/useTenant";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -35,71 +35,34 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Wrapper for dashboard routes with shared providers
+const DashboardWrapper = () => {
+  return (
+    <ProtectedRoute>
+      <TenantProvider>
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
+      </TenantProvider>
+    </ProtectedRoute>
+  );
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <TenantProvider>
-              <DashboardLayout>
-                <Dashboard />
-              </DashboardLayout>
-            </TenantProvider>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/products"
-        element={
-          <ProtectedRoute>
-            <TenantProvider>
-              <DashboardLayout>
-                <Products />
-              </DashboardLayout>
-            </TenantProvider>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/personas"
-        element={
-          <ProtectedRoute>
-            <TenantProvider>
-              <DashboardLayout>
-                <Personas />
-              </DashboardLayout>
-            </TenantProvider>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/analytics"
-        element={
-          <ProtectedRoute>
-            <TenantProvider>
-              <DashboardLayout>
-                <Analytics />
-              </DashboardLayout>
-            </TenantProvider>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/settings"
-        element={
-          <ProtectedRoute>
-            <TenantProvider>
-              <DashboardLayout>
-                <Settings />
-              </DashboardLayout>
-            </TenantProvider>
-          </ProtectedRoute>
-        }
-      />
+      
+      {/* Dashboard routes with shared wrapper */}
+      <Route path="/dashboard" element={<DashboardWrapper />}>
+        <Route index element={<Dashboard />} />
+        <Route path="products" element={<Products />} />
+        <Route path="personas" element={<Personas />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

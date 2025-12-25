@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTenant } from "@/hooks/useTenant";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,10 +14,17 @@ const Settings = () => {
   const { tenant } = useTenant();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [brandName, setBrandName] = useState(tenant?.name || "");
+  const [brandName, setBrandName] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleSaveBrand = async () => {
+  // Sync brandName when tenant changes
+  useEffect(() => {
+    if (tenant?.name) {
+      setBrandName(tenant.name);
+    }
+  }, [tenant?.name]);
+
+  const handleSaveBrand = useCallback(async () => {
     if (!tenant) return;
     setSaving(true);
 
@@ -39,7 +46,7 @@ const Settings = () => {
       });
     }
     setSaving(false);
-  };
+  }, [tenant, brandName, toast]);
 
   return (
     <div className="space-y-6 max-w-2xl">

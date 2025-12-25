@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,17 +29,10 @@ const AIInsightsPanel = () => {
   const [generating, setGenerating] = useState(false);
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
 
-  useEffect(() => {
-    if (tenant) {
-      loadCachedInsights();
-    }
-  }, [tenant]);
-
-  const loadCachedInsights = async () => {
+  const loadCachedInsights = useCallback(async () => {
     if (!tenant) return;
 
     try {
-      // Try to load from analytics_snapshots
       const { data } = await supabase
         .from("analytics_snapshots")
         .select("metrics")
@@ -56,9 +49,15 @@ const AIInsightsPanel = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant]);
 
-  const generateInsights = async () => {
+  useEffect(() => {
+    if (tenant) {
+      loadCachedInsights();
+    }
+  }, [tenant, loadCachedInsights]);
+
+  const generateInsights = useCallback(async () => {
     if (!tenant) return;
     setGenerating(true);
 
@@ -84,7 +83,7 @@ const AIInsightsPanel = () => {
     } finally {
       setGenerating(false);
     }
-  };
+  }, [tenant, toast]);
 
   const getInsightIcon = (type: Insight["type"]) => {
     switch (type) {

@@ -38,6 +38,10 @@ interface PersonaScore {
   matchFactors: { factor: string; weight: number; contribution: string }[];
 }
 
+// Batch processing configuration
+const BATCH_SIZE = 5;
+const REQUEST_TIMEOUT_MS = 30000;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -65,7 +69,6 @@ serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
 
-    // Admin client (bypasses RLS) + Auth client (validates JWT)
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     const supabaseAuth = createClient(supabaseUrl, anonKey, {
       global: {
@@ -122,15 +125,14 @@ serve(async (req) => {
     }
 
     console.log(`Analyzing product ${product.name} against ${personas.length} personas`);
+    const startTime = Date.now();
 
     // Get extracted features or use existing
     let features = product.extracted_features;
     
     if (!features || Object.keys(features).length === 0) {
-      // Extract features using AI
       features = await extractProductFeatures(product, lovableApiKey);
       
-      // Save extracted features
       await supabase
         .from("products")
         .update({ 
@@ -140,37 +142,55 @@ serve(async (req) => {
         .eq("id", productId);
     }
 
-    // Score against each persona
+    // PARALLEL SCORING: Process personas in batches using Promise.allSettled
     const scores: PersonaScore[] = [];
     
-    for (const persona of personas) {
-      const score = await scoreProductAgainstPersona(
-        product,
-        features,
-        persona,
-        lovableApiKey
+    for (let i = 0; i < personas.length; i += BATCH_SIZE) {
+      const batch = personas.slice(i, i + BATCH_SIZE);
+      
+      const batchPromises = batch.map((persona) =>
+        scoreProductAgainstPersonaWithTimeout(product, features, persona, lovableApiKey)
       );
-      scores.push(score);
 
-      // Upsert analysis result
-      await supabase
-        .from("analysis_results")
-        .upsert({
-          product_id: productId,
-          persona_id: persona.id,
-          tenant_id: tenantId,
-          like_probability: score.likeProbability,
-          confidence_score: score.confidenceScore,
-          price_floor: score.priceFloor,
-          price_sweet_spot: score.priceSweetSpot,
-          price_ceiling: score.priceCeiling,
-          price_elasticity: score.priceElasticity,
-          explanation: score.explanation,
-          match_factors: score.matchFactors,
-        }, {
-          onConflict: "product_id,persona_id"
-        });
+      const batchResults = await Promise.allSettled(batchPromises);
+
+      for (let j = 0; j < batchResults.length; j++) {
+        const result = batchResults[j];
+        const persona = batch[j];
+
+        let score: PersonaScore;
+        if (result.status === "fulfilled") {
+          score = result.value;
+        } else {
+          console.error(`Scoring failed for persona ${persona.name}:`, result.reason);
+          score = getDefaultScore(product, persona);
+        }
+
+        scores.push(score);
+
+        // Upsert analysis result
+        await supabase
+          .from("analysis_results")
+          .upsert({
+            product_id: productId,
+            persona_id: persona.id,
+            tenant_id: tenantId,
+            like_probability: score.likeProbability,
+            confidence_score: score.confidenceScore,
+            price_floor: score.priceFloor,
+            price_sweet_spot: score.priceSweetSpot,
+            price_ceiling: score.priceCeiling,
+            price_elasticity: score.priceElasticity,
+            explanation: score.explanation,
+            match_factors: score.matchFactors,
+          }, {
+            onConflict: "product_id,persona_id"
+          });
+      }
     }
+
+    const elapsedTime = Date.now() - startTime;
+    console.log(`Analysis completed in ${elapsedTime}ms for ${personas.length} personas`);
 
     // Log analysis
     await supabase.from("analysis_history").insert({
@@ -178,7 +198,7 @@ serve(async (req) => {
       product_id: productId,
       user_id: user.id,
       action_type: "single_analysis",
-      input_data: { productName: product.name, personaCount: personas.length },
+      input_data: { productName: product.name, personaCount: personas.length, elapsedMs: elapsedTime },
       results_summary: {
         averageLikeProbability:
           scores.reduce((a, b) => a + b.likeProbability, 0) / scores.length,
@@ -194,6 +214,7 @@ serve(async (req) => {
         productId,
         features,
         scores,
+        elapsedMs: elapsedTime,
         summary: {
           averageLikeProbability: Math.round(scores.reduce((a, b) => a + b.likeProbability, 0) / scores.length),
           highestMatch: scores.reduce((a, b) => a.likeProbability > b.likeProbability ? a : b),
@@ -211,6 +232,38 @@ serve(async (req) => {
     );
   }
 });
+
+function getDefaultScore(product: any, persona: any): PersonaScore {
+  return {
+    personaId: persona.id,
+    personaName: persona.name,
+    likeProbability: 50,
+    confidenceScore: 30,
+    priceFloor: product.price * 0.8,
+    priceSweetSpot: product.price,
+    priceCeiling: product.price * 1.2,
+    priceElasticity: -0.5,
+    explanation: "Unable to generate detailed analysis. Default scoring applied.",
+    matchFactors: []
+  };
+}
+
+async function scoreProductAgainstPersonaWithTimeout(
+  product: any,
+  features: ProductFeatures,
+  persona: any,
+  apiKey: string
+): Promise<PersonaScore> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const result = await scoreProductAgainstPersona(product, features, persona, apiKey, controller.signal);
+    return result;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 async function extractProductFeatures(product: any, apiKey: string): Promise<ProductFeatures> {
   const systemPrompt = `You are an expert fashion product analyst specializing in casual and formal apparel including t-shirts, shirts, jeans, trousers, shorts, joggers, hoodies, and polo shirts. 
@@ -317,7 +370,6 @@ Extract and return structured features for this apparel item.`;
 
   if (!response.ok) {
     console.error("AI extraction failed:", await response.text());
-    // Return default features for general apparel
     return {
       category: product.category || "tshirt",
       fabric: ["cotton"],
@@ -347,7 +399,8 @@ async function scoreProductAgainstPersona(
   product: any,
   features: ProductFeatures,
   persona: any,
-  apiKey: string
+  apiKey: string,
+  signal?: AbortSignal
 ): Promise<PersonaScore> {
   
   const systemPrompt = `You are an expert consumer behavior analyst specializing in apparel and fashion retail. Score how well a product matches a consumer persona.
@@ -422,23 +475,12 @@ Calculate:
       }],
       tool_choice: { type: "function", function: { name: "score_match" } }
     }),
+    signal,
   });
 
   if (!response.ok) {
     console.error("AI scoring failed:", await response.text());
-    // Return default score
-    return {
-      personaId: persona.id,
-      personaName: persona.name,
-      likeProbability: 50,
-      confidenceScore: 30,
-      priceFloor: product.price * 0.8,
-      priceSweetSpot: product.price,
-      priceCeiling: product.price * 1.2,
-      priceElasticity: -0.5,
-      explanation: "Unable to generate detailed analysis. Default scoring applied.",
-      matchFactors: []
-    };
+    return getDefaultScore(product, persona);
   }
 
   const data = await response.json();

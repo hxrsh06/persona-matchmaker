@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, TrendingUp, Target, Users, Package, Palette, DollarSign, Sparkles } from "lucide-react";
+import { BarChart3, TrendingUp, Target, Users, Package, Palette, DollarSign } from "lucide-react";
 import AnalyticsCharts from "@/components/analytics/AnalyticsCharts";
 import WhatIfSimulator from "@/components/analytics/WhatIfSimulator";
 import StyleClusterAnalytics from "@/components/analytics/StyleClusterAnalytics";
@@ -39,14 +39,7 @@ const Analytics = () => {
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    if (tenant) {
-      loadAnalytics();
-      loadProducts();
-    }
-  }, [tenant]);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     if (!tenant) return;
     
     const { data } = await supabase
@@ -57,9 +50,9 @@ const Analytics = () => {
       .order("created_at", { ascending: false });
 
     setProducts(data || []);
-  };
+  }, [tenant]);
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     if (!tenant) return;
 
     try {
@@ -73,12 +66,10 @@ const Analytics = () => {
       const personas = personasRes.data || [];
       const analyses = analysisRes.data || [];
 
-      // Calculate averages
       const avgLike = analyses.length
         ? analyses.reduce((a, b) => a + (b.like_probability || 0), 0) / analyses.length
         : 0;
 
-      // Calculate price delta
       const priceDelta = analyses.length
         ? analyses.reduce((a, b) => {
             const productPrice = (b.products as any)?.price || 0;
@@ -87,7 +78,6 @@ const Analytics = () => {
           }, 0) / analyses.length
         : 0;
 
-      // Top products
       const productScores: Record<string, { name: string; scores: number[] }> = {};
       analyses.forEach((a: any) => {
         const pid = a.product_id;
@@ -106,7 +96,6 @@ const Analytics = () => {
         .sort((a, b) => b.avgScore - a.avgScore)
         .slice(0, 5);
 
-      // Persona performance
       const personaScores: Record<string, { name: string; emoji: string; scores: number[] }> = {};
       analyses.forEach((a: any) => {
         const pid = a.persona_id;
@@ -143,7 +132,14 @@ const Analytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant]);
+
+  useEffect(() => {
+    if (tenant) {
+      loadAnalytics();
+      loadProducts();
+    }
+  }, [tenant, loadAnalytics, loadProducts]);
 
   if (loading) {
     return (

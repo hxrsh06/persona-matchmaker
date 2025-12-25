@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Button } from "@/components/ui/button";
@@ -35,11 +35,7 @@ const WhatIfSimulator = ({ productId }: WhatIfSimulatorProps) => {
   } | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
 
-  useEffect(() => {
-    loadProduct();
-  }, [productId]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     const { data } = await supabase
       .from("products")
       .select("id, name, price")
@@ -53,9 +49,13 @@ const WhatIfSimulator = ({ productId }: WhatIfSimulatorProps) => {
       setPriceRange([min, max]);
       setSelectedRange([min, max]);
     }
-  };
+  }, [productId]);
 
-  const runSimulation = async () => {
+  useEffect(() => {
+    loadProduct();
+  }, [loadProduct]);
+
+  const runSimulation = useCallback(async () => {
     if (!tenant || !product) return;
     setSimulating(true);
 
@@ -83,7 +83,7 @@ const WhatIfSimulator = ({ productId }: WhatIfSimulatorProps) => {
     } finally {
       setSimulating(false);
     }
-  };
+  }, [tenant, product, selectedRange, toast]);
 
   if (!product) {
     return <Skeleton className="h-64" />;

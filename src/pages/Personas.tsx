@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,13 +48,7 @@ const Personas = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
 
-  useEffect(() => {
-    if (tenant) {
-      loadPersonas();
-    }
-  }, [tenant]);
-
-  const loadPersonas = async () => {
+  const loadPersonas = useCallback(async () => {
     if (!tenant) return;
 
     const { data, error } = await supabase
@@ -74,9 +68,15 @@ const Personas = () => {
       setPersonas(data || []);
     }
     setLoading(false);
-  };
+  }, [tenant, toast]);
 
-  const seedPersonas = async () => {
+  useEffect(() => {
+    if (tenant) {
+      loadPersonas();
+    }
+  }, [tenant, loadPersonas]);
+
+  const seedPersonas = useCallback(async () => {
     if (!tenant) return;
     setActionLoading(true);
 
@@ -109,9 +109,9 @@ const Personas = () => {
     } finally {
       setActionLoading(false);
     }
-  };
+  }, [tenant, toast, loadPersonas]);
 
-  const refreshAttributes = async () => {
+  const refreshAttributes = useCallback(async () => {
     if (!tenant) return;
     setActionLoading(true);
 
@@ -137,7 +137,7 @@ const Personas = () => {
     } finally {
       setActionLoading(false);
     }
-  };
+  }, [tenant, toast, loadPersonas]);
 
   const getAttributeCount = (persona: Persona) => {
     return Array.isArray(persona.attribute_vector) ? persona.attribute_vector.length : 0;
