@@ -99,31 +99,41 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return null;
 
     try {
-      // Create tenant
-      const { data: newTenant, error: tenantError } = await supabase
+      // Generate tenant ID client-side to avoid RLS read issue
+      const tenantId = crypto.randomUUID();
+
+      // Insert tenant without returning (bypasses RLS SELECT requirement)
+      const { error: tenantError } = await supabase
         .from("tenants")
-        .insert({ name, slug })
-        .select()
-        .single();
+        .insert({ id: tenantId, name, slug });
 
       if (tenantError) throw tenantError;
 
-      // Add user as admin
+      // Add user as admin immediately (this enables RLS for future reads)
       const { error: roleError } = await supabase
         .from("user_roles")
         .insert({
           user_id: user.id,
-          tenant_id: newTenant.id,
+          tenant_id: tenantId,
           role: "admin",
         });
 
       if (roleError) throw roleError;
 
-      // Update profile
+      // Update profile with current tenant
       await supabase
         .from("profiles")
-        .update({ current_tenant_id: newTenant.id })
+        .update({ current_tenant_id: tenantId })
         .eq("id", user.id);
+
+      // Create tenant object locally (we know the data)
+      const newTenant: Tenant = {
+        id: tenantId,
+        name,
+        slug,
+        logo_url: null,
+        settings: {},
+      };
 
       // Update state
       setTenants(prev => [...prev, newTenant]);
