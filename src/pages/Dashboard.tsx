@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Users, BarChart3, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
-import OnboardingDialog from "@/components/OnboardingDialog";
 
 interface DashboardStats {
   productCount: number;
@@ -17,19 +16,15 @@ interface DashboardStats {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { tenant, loading: tenantLoading } = useTenant();
+  const { tenant } = useTenant();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     if (tenant) {
       loadStats();
-    } else if (!tenantLoading) {
-      setShowOnboarding(true);
-      setLoading(false);
     }
-  }, [tenant, tenantLoading]);
+  }, [tenant]);
 
   const loadStats = async () => {
     if (!tenant) return;
@@ -58,7 +53,7 @@ const Dashboard = () => {
     }
   };
 
-  if (tenantLoading || loading) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -69,10 +64,6 @@ const Dashboard = () => {
         </div>
       </div>
     );
-  }
-
-  if (!tenant) {
-    return <OnboardingDialog open={showOnboarding} onOpenChange={setShowOnboarding} />;
   }
 
   const statCards = [
