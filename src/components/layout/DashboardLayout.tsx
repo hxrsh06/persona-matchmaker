@@ -85,19 +85,17 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     );
   }
 
-  // Show onboarding if no tenant
+  // Show onboarding if no tenant - force it to stay open
   if (!tenant) {
     return (
-      <OnboardingDialog 
-        open={showOnboarding} 
-        onOpenChange={(open) => {
-          setShowOnboarding(open);
-          if (!open) {
-            // Refresh the page to reload tenant data
-            window.location.reload();
-          }
-        }} 
-      />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <OnboardingDialog 
+          open={true} 
+          onOpenChange={() => {
+            // Don't allow closing - must complete onboarding
+          }} 
+        />
+      </div>
     );
   }
 
