@@ -23,7 +23,7 @@ interface Persona {
   is_active: boolean;
 }
 
-// Enterprise persona definitions
+// Enterprise persona definitions for 10 personas (5 female, 5 male)
 const PERSONA_DATA: Record<string, { segment: string; highlights: string[]; gender: string }> = {
   "Priya Sharma": {
     segment: "Trend-Conscious Millennial",
@@ -40,6 +40,16 @@ const PERSONA_DATA: Record<string, { segment: string; highlights: string[]; gend
     gender: "Female",
     highlights: ["Price-sensitive", "Sale-driven purchases", "High variety seeking", "Marketplace preference"],
   },
+  "Meera Reddy": {
+    segment: "Ethnic-Fusion Enthusiast",
+    gender: "Female",
+    highlights: ["Occasion-driven", "Cultural blend", "Festive spender", "Traditional-modern mix"],
+  },
+  "Kavya Iyer": {
+    segment: "Athleisure Lifestyle",
+    gender: "Female",
+    highlights: ["Fitness-focused", "Performance fabrics", "Comfort-first", "Brand-conscious active"],
+  },
   "Rahul Kumar": {
     segment: "Comfort-Focused Professional",
     gender: "Male",
@@ -54,6 +64,16 @@ const PERSONA_DATA: Record<string, { segment: string; highlights: string[]; gend
     segment: "Streetwear Enthusiast",
     gender: "Male",
     highlights: ["Drop-culture driven", "Exclusivity seeker", "Community-oriented", "Trend-setter"],
+  },
+  "Aditya Singh": {
+    segment: "Value Maximizer",
+    gender: "Male",
+    highlights: ["Deal-hunter", "Bulk buyer", "Tier 2/3 cities", "COD preference"],
+  },
+  "Rohan Kapoor": {
+    segment: "Smart Casual Hybrid",
+    gender: "Male",
+    highlights: ["WFH professional", "Versatile wardrobe", "Quality-conscious", "Work-weekend blend"],
   },
 };
 
@@ -102,30 +122,42 @@ const Personas = () => {
   };
 
   const getPriceRange = (persona: Persona) => {
-    const behavior = persona.price_behavior as { tshirtRange?: number[]; expectedPricePoint?: number };
+    const behavior = persona.price_behavior as { comfortPriceTshirtsMin?: number; comfortPriceTshirtsMax?: number; tshirtRange?: number[] };
+    if (behavior?.comfortPriceTshirtsMin && behavior?.comfortPriceTshirtsMax) {
+      return `₹${behavior.comfortPriceTshirtsMin.toLocaleString()} - ${behavior.comfortPriceTshirtsMax.toLocaleString()}`;
+    }
     if (behavior?.tshirtRange) {
-      return `${behavior.tshirtRange[0].toLocaleString()} - ${behavior.tshirtRange[1].toLocaleString()}`;
+      return `₹${behavior.tshirtRange[0].toLocaleString()} - ${behavior.tshirtRange[1].toLocaleString()}`;
     }
     return "Variable";
   };
 
   const getBrandLoyalty = (persona: Persona) => {
-    const psychology = persona.brand_psychology as { brandLoyalty?: number };
-    const loyalty = psychology?.brandLoyalty || 0.5;
+    const psychology = persona.brand_psychology as { brandLoyaltyScore?: number; brandLoyalty?: number };
+    const loyalty = psychology?.brandLoyaltyScore || psychology?.brandLoyalty || 0.5;
     if (loyalty >= 0.7) return { label: "High", value: loyalty };
     if (loyalty >= 0.4) return { label: "Medium", value: loyalty };
     return { label: "Low", value: loyalty };
   };
 
   const getPersonaData = (personaName: string) => {
-    // Extract first name for matching
+    // Try exact match first
+    if (PERSONA_DATA[personaName]) {
+      return PERSONA_DATA[personaName];
+    }
+    // Fallback to first name match
     const firstName = personaName.split(" ")[0];
     const match = Object.entries(PERSONA_DATA).find(([key]) => key.startsWith(firstName));
     return match ? match[1] : { segment: "Consumer Persona", highlights: [], gender: "Unknown" };
   };
 
   const getElasticity = (persona: Persona) => {
-    const behavior = persona.price_behavior as { elasticity?: number };
+    const behavior = persona.price_behavior as { elasticity?: number; priceElasticityIndicator?: string };
+    if (behavior?.priceElasticityIndicator) {
+      if (behavior.priceElasticityIndicator.includes("high")) return "High";
+      if (behavior.priceElasticityIndicator.includes("low")) return "Low";
+      return "Medium";
+    }
     const elasticity = Math.abs(behavior?.elasticity || 0.5);
     if (elasticity >= 0.7) return "High";
     if (elasticity >= 0.4) return "Medium";
@@ -138,9 +170,9 @@ const Personas = () => {
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-48" />
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-72" />
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <Skeleton key={i} className="h-64" />
           ))}
         </div>
       </div>
@@ -152,11 +184,11 @@ const Personas = () => {
       <div className="space-y-1">
         <h1 className="text-2xl font-medium tracking-tight">Consumer Personas</h1>
         <p className="text-muted-foreground">
-          Six enterprise-grade consumer profiles for product-market fit analysis
+          Ten enterprise-grade consumer profiles (5 female, 5 male) with 144+ attributes each
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {personas.map((persona) => {
           const data = getPersonaData(persona.name);
           const loyalty = getBrandLoyalty(persona);
@@ -167,34 +199,34 @@ const Personas = () => {
               className="cursor-pointer transition-all duration-200 hover:shadow-lg border-border/40 bg-card"
               onClick={() => setSelectedPersona(persona)}
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1.5">
-                    <CardTitle className="text-lg font-medium">{persona.name}</CardTitle>
-                    <CardDescription className="text-xs font-medium uppercase tracking-wide">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <CardTitle className="text-base font-medium truncate">{persona.name}</CardTitle>
+                    <CardDescription className="text-[10px] font-medium uppercase tracking-wide line-clamp-1">
                       {data.segment}
                     </CardDescription>
                   </div>
                   <Badge 
                     variant={data.gender === "Female" ? "default" : "secondary"} 
-                    className="text-xs font-normal"
+                    className="text-[10px] font-normal shrink-0"
                   >
-                    {data.gender}
+                    {data.gender === "Female" ? "F" : "M"}
                   </Badge>
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-5">
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+              <CardContent className="space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                   {persona.description}
                 </p>
                 
                 {/* Key Characteristics */}
-                <div className="flex flex-wrap gap-1.5">
-                  {data.highlights.slice(0, 3).map((highlight) => (
+                <div className="flex flex-wrap gap-1">
+                  {data.highlights.slice(0, 2).map((highlight) => (
                     <span 
                       key={highlight} 
-                      className="text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground"
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground"
                     >
                       {highlight}
                     </span>
@@ -202,15 +234,15 @@ const Personas = () => {
                 </div>
 
                 {/* Categories */}
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Primary Categories
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Top Categories
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {getTopCategories(persona).map((cat) => (
+                  <div className="flex flex-wrap gap-1">
+                    {getTopCategories(persona).slice(0, 3).map((cat) => (
                       <span 
                         key={cat} 
-                        className="text-xs px-2 py-0.5 rounded border border-border text-foreground"
+                        className="text-[10px] px-1.5 py-0.5 rounded border border-border text-foreground"
                       >
                         {cat}
                       </span>
@@ -219,40 +251,40 @@ const Personas = () => {
                 </div>
 
                 {/* Metrics Grid */}
-                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Price Range
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                      T-shirt
                     </p>
-                    <p className="text-sm font-medium">
+                    <p className="text-[10px] font-medium truncate">
                       {getPriceRange(persona)}
                     </p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                       Loyalty
                     </p>
-                    <p className="text-sm font-medium">
+                    <p className="text-[10px] font-medium">
                       {loyalty.label}
                     </p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                       Elasticity
                     </p>
-                    <p className="text-sm font-medium">
+                    <p className="text-[10px] font-medium">
                       {getElasticity(persona)}
                     </p>
                   </div>
                 </div>
 
                 {/* Attribute Count */}
-                <div className="flex items-center justify-between pt-3 border-t border-border">
-                  <span className="text-xs text-muted-foreground">
-                    {getAttributeCount(persona)} behavioral attributes
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-muted-foreground">
+                    {getAttributeCount(persona)} attributes
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    View details
+                  <span className="text-[10px] text-primary">
+                    Details →
                   </span>
                 </div>
               </CardContent>
@@ -269,7 +301,7 @@ const Personas = () => {
             </div>
             <h3 className="font-medium mb-1">No personas configured</h3>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Complete the onboarding process to generate your six consumer personas
+              Complete the onboarding process to generate your ten consumer personas
             </p>
           </CardContent>
         </Card>

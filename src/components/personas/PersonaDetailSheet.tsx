@@ -26,6 +26,7 @@ interface Persona {
   shopping_preferences: Json;
   product_preferences: Json;
   price_behavior: Json;
+  brand_psychology: Json;
   attribute_vector: Json;
 }
 
@@ -59,12 +60,30 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
           <div key={key} className="space-y-1">
             <p className="text-sm text-muted-foreground capitalize">{label}</p>
             <div className="flex flex-wrap gap-1">
-              {value.map((item, i) => (
+              {value.slice(0, 8).map((item, i) => (
                 <Badge key={i} variant="secondary" className="text-xs">
                   {String(item)}
                 </Badge>
               ))}
+              {value.length > 8 && (
+                <Badge variant="outline" className="text-xs">
+                  +{value.length - 8} more
+                </Badge>
+              )}
             </div>
+          </div>
+        );
+      }
+
+      // Render numeric values with progress bars if between 0 and 1
+      if (typeof value === "number" && value >= 0 && value <= 1) {
+        return (
+          <div key={key} className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground capitalize">{label}</span>
+              <span className="font-medium">{(value * 100).toFixed(0)}%</span>
+            </div>
+            <Progress value={value * 100} className="h-1.5" />
           </div>
         );
       }
@@ -88,16 +107,31 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
     return acc;
   }, {} as Record<string, { name: string; value: number; category: string }[]>);
 
+  const categoryDisplayNames: Record<string, string> = {
+    demographics: "Demographics",
+    lifestyle: "Lifestyle",
+    fashion_orientation: "Fashion Orientation",
+    shopping_behavior: "Shopping Behavior",
+    price_behavior: "Price Sensitivity",
+    category_preferences: "Category Preferences",
+    fit_silhouette: "Fit & Silhouette",
+    fabric_material: "Fabric & Material",
+    color_pattern: "Color & Pattern",
+    digital_behavior: "Digital Behavior",
+    brand_psychology: "Brand Psychology",
+    psychographics: "Psychographics",
+  };
+
   return (
     <Sheet open={!!persona} onOpenChange={() => onClose()}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-4">
             <span className="text-5xl">{persona.avatar_emoji}</span>
             <div>
               <SheetTitle className="text-xl">{persona.name}</SheetTitle>
-          <SheetDescription>
-                {attributeVector.length} normalized attributes
+              <SheetDescription>
+                {attributeVector.length} ML-ready attributes across {Object.keys(groupedAttributes).length} categories
               </SheetDescription>
             </div>
           </div>
@@ -105,12 +139,53 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
 
         <div className="mt-6 space-y-6">
           {persona.description && (
-            <p className="text-muted-foreground">{persona.description}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{persona.description}</p>
           )}
 
           <Separator />
 
-          <Accordion type="multiple" defaultValue={["demographics", "product"]} className="space-y-2">
+          <Accordion type="multiple" defaultValue={["vector", "demographics"]} className="space-y-2">
+            {/* Attribute Vector Section - Primary */}
+            {groupedAttributes && Object.keys(groupedAttributes).length > 0 && (
+              <AccordionItem value="vector" className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">ML Attribute Vector</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {attributeVector.length} attributes
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-6 pb-4">
+                  {Object.entries(groupedAttributes).map(([category, attrs]) => (
+                    <div key={category} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-foreground">
+                          {categoryDisplayNames[category] || category.replace(/_/g, " ")}
+                        </p>
+                        <Badge variant="outline" className="text-xs">
+                          {attrs.length}
+                        </Badge>
+                      </div>
+                      <div className="grid gap-2">
+                        {attrs.map((attr, i) => (
+                          <div key={i} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="capitalize text-muted-foreground">
+                                {attr.name.replace(/_/g, " ")}
+                              </span>
+                              <span className="font-medium">{(attr.value * 100).toFixed(0)}%</span>
+                            </div>
+                            <Progress value={attr.value * 100} className="h-1" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
             <AccordionItem value="demographics" className="border rounded-lg px-4">
               <AccordionTrigger className="hover:no-underline">
                 <span className="font-medium">Demographics</span>
@@ -122,7 +197,7 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
 
             <AccordionItem value="psychographics" className="border rounded-lg px-4">
               <AccordionTrigger className="hover:no-underline">
-                <span className="font-medium">Psychographics</span>
+                <span className="font-medium">Psychographics & Lifestyle</span>
               </AccordionTrigger>
               <AccordionContent className="space-y-3 pb-4">
                 {renderAttributes(persona.psychographics)}
@@ -156,36 +231,14 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
               </AccordionContent>
             </AccordionItem>
 
-            {groupedAttributes && Object.keys(groupedAttributes).length > 0 && (
-              <AccordionItem value="vector" className="border rounded-lg px-4">
-                <AccordionTrigger className="hover:no-underline">
-                  <span className="font-medium">Attribute Vector (ML Features)</span>
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4 pb-4">
-                  {Object.entries(groupedAttributes).map(([category, attrs]) => (
-                    <div key={category} className="space-y-2">
-                      <p className="text-sm font-medium capitalize text-muted-foreground">{category}</p>
-                      <div className="space-y-2">
-                        {attrs.slice(0, 10).map((attr, i) => (
-                          <div key={i} className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span className="capitalize">{attr.name.replace(/_/g, " ")}</span>
-                              <span>{(attr.value * 100).toFixed(0)}%</span>
-                            </div>
-                            <Progress value={attr.value * 100} className="h-1.5" />
-                          </div>
-                        ))}
-                        {attrs.length > 10 && (
-                          <p className="text-xs text-muted-foreground">
-                            +{attrs.length - 10} more attributes
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            )}
+            <AccordionItem value="brand" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline">
+                <span className="font-medium">Brand Psychology & Digital</span>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-3 pb-4">
+                {renderAttributes(persona.brand_psychology)}
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </SheetContent>
