@@ -5,7 +5,7 @@ import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, Users, BarChart3, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
+import { Package, Users, BarChart3, TrendingUp, ArrowRight, Zap } from "lucide-react";
 
 interface DashboardStats {
   productCount: number;
@@ -131,7 +131,7 @@ const Dashboard = () => {
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Zap className="w-5 h-5 text-primary" />
               Quick Actions
             </CardTitle>
             <CardDescription>Get started with common tasks</CardDescription>
@@ -167,7 +167,7 @@ const Dashboard = () => {
         <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader>
             <CardTitle>How it works</CardTitle>
-            <CardDescription>The Lovable Twin process</CardDescription>
+            <CardDescription>The SWIRL process</CardDescription>
           </CardHeader>
           <CardContent>
             <ol className="space-y-3 text-sm">

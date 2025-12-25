@@ -296,7 +296,13 @@ const Personas = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{persona.avatar_emoji}</span>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${
+                        persona.gender === "female" 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-secondary text-secondary-foreground"
+                      }`}>
+                        {persona.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                      </div>
                       <div>
                         <CardTitle className="text-sm font-medium truncate">{persona.name}</CardTitle>
                         <p className="text-[10px] text-muted-foreground">{getAgeBand(persona)}</p>

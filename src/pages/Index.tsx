@@ -6,12 +6,12 @@ import {
   Users, 
   Package, 
   BarChart3, 
-  Sparkles, 
   ArrowRight, 
   Target, 
   TrendingUp,
   Zap
 } from "lucide-react";
+import swirlLogo from "@/assets/swirl-logo.png";
 
 const Index = () => {
   const features = [
@@ -43,8 +43,8 @@ const Index = () => {
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Twin Service</span>
+            <img src={swirlLogo} alt="SWIRL" className="h-6 w-auto" />
+            <span className="text-xl font-semibold tracking-tight">SWIRL</span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/auth">
@@ -63,7 +63,7 @@ const Index = () => {
           <Zap className="mr-1 h-3 w-3" />
           AI-Powered Customer Intelligence
         </Badge>
-        <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+        <h1 className="mb-6 text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
           Understand Your Customers
           <br />
           <span className="text-primary">Like Never Before</span>
@@ -88,7 +88,7 @@ const Index = () => {
       {/* Features Grid */}
       <section className="container mx-auto px-4 py-16">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold">Everything You Need</h2>
+          <h2 className="mb-4 text-3xl font-semibold">Everything You Need</h2>
           <p className="mx-auto max-w-xl text-muted-foreground">
             Powerful tools to understand your customers and optimize your product strategy.
           </p>
@@ -117,15 +117,15 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid gap-8 sm:grid-cols-3">
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold">95%</div>
+              <div className="mb-2 text-4xl font-semibold">95%</div>
               <p className="text-muted-foreground">Prediction Accuracy</p>
             </div>
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold">10K+</div>
+              <div className="mb-2 text-4xl font-semibold">10K+</div>
               <p className="text-muted-foreground">Products Analyzed</p>
             </div>
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold">500+</div>
+              <div className="mb-2 text-4xl font-semibold">500+</div>
               <p className="text-muted-foreground">Brands Trust Us</p>
             </div>
           </div>
@@ -135,35 +135,35 @@ const Index = () => {
       {/* How It Works */}
       <section className="container mx-auto px-4 py-16">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold">How It Works</h2>
+          <h2 className="mb-4 text-3xl font-semibold">How It Works</h2>
           <p className="mx-auto max-w-xl text-muted-foreground">
             Get started in three simple steps
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground">
               1
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Create Your Brand</h3>
+            <h3 className="mb-2 text-xl font-medium">Create Your Brand</h3>
             <p className="text-muted-foreground">
               Set up your brand profile and let AI generate your target customer personas.
             </p>
           </div>
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground">
               2
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Upload Products</h3>
+            <h3 className="mb-2 text-xl font-medium">Upload Products</h3>
             <p className="text-muted-foreground">
               Add your products and get instant AI analysis with persona match scores.
             </p>
           </div>
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground">
               3
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Optimize & Grow</h3>
+            <h3 className="mb-2 text-xl font-medium">Optimize & Grow</h3>
             <p className="text-muted-foreground">
               Use insights to optimize pricing, targeting, and product development.
             </p>
@@ -176,7 +176,7 @@ const Index = () => {
         <Card className="bg-primary text-primary-foreground">
           <CardContent className="flex flex-col items-center gap-6 py-12 text-center">
             <TrendingUp className="h-12 w-12" />
-            <h2 className="text-3xl font-bold">Ready to Transform Your Business?</h2>
+            <h2 className="text-3xl font-semibold">Ready to Transform Your Business?</h2>
             <p className="max-w-xl opacity-90">
               Join hundreds of brands using AI-powered customer intelligence to drive growth.
             </p>
@@ -194,11 +194,11 @@ const Index = () => {
       <footer className="border-t py-8">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Twin Service</span>
+            <img src={swirlLogo} alt="SWIRL" className="h-5 w-auto" />
+            <span className="font-medium">SWIRL</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2025 Twin Service. All rights reserved.
+            2025 SWIRL. All rights reserved.
           </p>
         </div>
       </footer>

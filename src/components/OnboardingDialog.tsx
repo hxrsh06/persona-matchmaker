@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import swirlLogo from "@/assets/swirl-logo.png";
 
 interface OnboardingDialogProps {
   open: boolean;
@@ -120,9 +121,9 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-            <Sparkles className="w-6 h-6 text-primary" />
+            <img src={swirlLogo} alt="SWIRL" className="w-6 h-6" />
           </div>
-          <DialogTitle className="text-center">Welcome to Lovable Twin</DialogTitle>
+          <DialogTitle className="text-center">Welcome to SWIRL</DialogTitle>
           <DialogDescription className="text-center">
             Tell us about your brand to set up personalized consumer personas
           </DialogDescription>
@@ -133,7 +134,7 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
             <Label htmlFor="brand-name">Brand Name</Label>
             <Input
               id="brand-name"
-              placeholder="e.g., Lovable Intimates"
+              placeholder="e.g., Your Brand Name"
               value={brandName}
               onChange={(e) => setBrandName(e.target.value)}
               required
@@ -161,7 +162,7 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label>Usual Price Range (₹)</Label>
+            <Label>Usual Price Range (INR)</Label>
             <div className="flex items-center gap-2">
               <Input
                 type="number"
