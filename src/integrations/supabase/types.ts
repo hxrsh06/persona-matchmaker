@@ -135,6 +135,38 @@ export type Database = {
           },
         ]
       }
+      analytics_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          metrics: Json
+          snapshot_date: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metrics?: Json
+          snapshot_date?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metrics?: Json
+          snapshot_date?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_snapshots_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personas: {
         Row: {
           attribute_vector: Json
@@ -193,6 +225,45 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_style_mappings: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          id: string
+          product_id: string
+          style_cluster_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          product_id: string
+          style_cluster_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          style_cluster_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_style_mappings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_style_mappings_style_cluster_id_fkey"
+            columns: ["style_cluster_id"]
+            isOneToOne: false
+            referencedRelation: "style_clusters"
             referencedColumns: ["id"]
           },
         ]
@@ -306,6 +377,44 @@ export type Database = {
           {
             foreignKeyName: "profiles_current_tenant_id_fkey"
             columns: ["current_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      style_clusters: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          keywords: string[] | null
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "style_clusters_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
