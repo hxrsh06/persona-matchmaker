@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import {
@@ -49,7 +49,7 @@ const ProductUploadDialog = ({ open, onOpenChange, onSuccess }: ProductUploadDia
     sku: "",
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
@@ -59,14 +59,14 @@ const ProductUploadDialog = ({ open, onOpenChange, onSuccess }: ProductUploadDia
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const removeImage = () => {
+  const removeImage = useCallback(() => {
     setImageFile(null);
     setImagePreview(null);
-  };
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tenant) return;
 
@@ -113,17 +113,38 @@ const ProductUploadDialog = ({ open, onOpenChange, onSuccess }: ProductUploadDia
 
       if (productError) throw productError;
 
-      // If image uploaded, trigger feature extraction
-      if (imageUrl) {
-        supabase.functions.invoke("extract-image-features", {
-          body: { productId: product.id, imageUrl },
-        }).catch(console.error);
+      // If image uploaded, trigger feature extraction with proper error handling
+      if (imageUrl && product) {
+        try {
+          const { error: extractError } = await supabase.functions.invoke("extract-image-features", {
+            body: { productId: product.id, imageUrl },
+          });
+          
+          if (extractError) {
+            console.error("Feature extraction failed:", extractError);
+            toast({
+              title: "Product added",
+              description: "Product created but feature extraction failed. You can retry by analyzing the product.",
+            });
+          } else {
+            toast({
+              title: "Product added!",
+              description: "Ready for analysis.",
+            });
+          }
+        } catch (extractError) {
+          console.error("Feature extraction error:", extractError);
+          toast({
+            title: "Product added",
+            description: "Product created but feature extraction failed. You can retry by analyzing the product.",
+          });
+        }
+      } else {
+        toast({
+          title: "Product added!",
+          description: "Ready for analysis.",
+        });
       }
-
-      toast({
-        title: "Product added!",
-        description: "Ready for analysis.",
-      });
 
       // Reset form
       setFormData({
@@ -148,7 +169,7 @@ const ProductUploadDialog = ({ open, onOpenChange, onSuccess }: ProductUploadDia
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant, formData, imageFile, onSuccess, toast]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

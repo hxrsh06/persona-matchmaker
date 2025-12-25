@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,7 @@ const Products = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    if (tenant) {
-      loadProducts();
-    }
-  }, [tenant]);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     if (!tenant) return;
 
     const { data, error } = await supabase
@@ -56,15 +50,21 @@ const Products = () => {
       setProducts(data || []);
     }
     setLoading(false);
-  };
+  }, [tenant, toast]);
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    if (tenant) {
+      loadProducts();
+    }
+  }, [tenant, loadProducts]);
 
-  const getStatusBadge = (status: string) => {
+  const filteredProducts = products.filter((p) => {
+    const nameMatch = p.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const categoryMatch = p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+    return nameMatch || categoryMatch;
+  });
+
+  const getStatusBadge = (status: string | null) => {
     switch (status) {
       case "analyzed":
         return <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">Analyzed</Badge>;
@@ -73,7 +73,7 @@ const Products = () => {
       case "error":
         return <Badge variant="destructive">Error</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{status || "Unknown"}</Badge>;
     }
   };
 

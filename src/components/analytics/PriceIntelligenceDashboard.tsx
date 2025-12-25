@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,17 +12,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
-  BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   ComposedChart,
   Line,
-  Area,
-  ResponsiveContainer,
-  ReferenceLine,
-  Cell,
 } from "recharts";
 import { DollarSign, TrendingUp, TrendingDown, Target, AlertTriangle } from "lucide-react";
 
@@ -59,13 +54,7 @@ const PriceIntelligenceDashboard = () => {
   const [elasticityData, setElasticityData] = useState<ElasticityData[]>([]);
   const [metrics, setMetrics] = useState<PriceMetrics | null>(null);
 
-  useEffect(() => {
-    if (tenant) {
-      loadPriceIntelligence();
-    }
-  }, [tenant]);
-
-  const loadPriceIntelligence = async () => {
+  const loadPriceIntelligence = useCallback(async () => {
     if (!tenant) return;
 
     try {
@@ -83,7 +72,6 @@ const PriceIntelligenceDashboard = () => {
         return;
       }
 
-      // Group by persona
       const personaGroups: Record<string, any[]> = {};
       analyses.forEach((a: any) => {
         const personaId = a.persona_id;
@@ -91,7 +79,6 @@ const PriceIntelligenceDashboard = () => {
         personaGroups[personaId].push(a);
       });
 
-      // Calculate WTP bandwidth per persona
       const wtpBandwidths: WTPBandwidth[] = [];
       const elasticities: ElasticityData[] = [];
 
@@ -120,9 +107,8 @@ const PriceIntelligenceDashboard = () => {
           currentAvgPrice: Math.round(avgPrice),
         });
 
-        // Calculate elasticity asymmetry
-        const upwardSensitivity = Math.abs(avgElasticity) * 1.2; // Typically higher for price increases
-        const downwardSensitivity = Math.abs(avgElasticity) * 0.8; // Lower for decreases
+        const upwardSensitivity = Math.abs(avgElasticity) * 1.2;
+        const downwardSensitivity = Math.abs(avgElasticity) * 0.8;
         const asymmetryRatio = upwardSensitivity / downwardSensitivity;
 
         elasticities.push({
@@ -139,13 +125,12 @@ const PriceIntelligenceDashboard = () => {
       setWtpData(wtpBandwidths);
       setElasticityData(elasticities);
 
-      // Calculate overall metrics
       if (wtpBandwidths.length > 0) {
         const avgFloor = wtpBandwidths.reduce((a, b) => a + b.floor, 0) / wtpBandwidths.length;
         const avgCeiling = wtpBandwidths.reduce((a, b) => a + b.ceiling, 0) / wtpBandwidths.length;
         const avgSweetSpot = wtpBandwidths.reduce((a, b) => a + b.sweetSpot, 0) / wtpBandwidths.length;
         const avgCurrent = wtpBandwidths.reduce((a, b) => a + b.currentAvgPrice, 0) / wtpBandwidths.length;
-        const uplift = ((avgSweetSpot - avgCurrent) / avgCurrent) * 100;
+        const uplift = avgCurrent > 0 ? ((avgSweetSpot - avgCurrent) / avgCurrent) * 100 : 0;
 
         setMetrics({
           avgPriceFloor: Math.round(avgFloor),
@@ -160,7 +145,13 @@ const PriceIntelligenceDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant]);
+
+  useEffect(() => {
+    if (tenant) {
+      loadPriceIntelligence();
+    }
+  }, [tenant, loadPriceIntelligence]);
 
   const chartConfig = {
     floor: { label: "Price Floor", color: "hsl(47, 95%, 52%)" },
@@ -269,7 +260,7 @@ const PriceIntelligenceDashboard = () => {
                   dataKey="personaName"
                   width={120}
                   tick={{ fontSize: 12 }}
-                  tickFormatter={(v, i) => `${wtpData[i]?.personaEmoji} ${v}`}
+                  tickFormatter={(v, i) => `${wtpData[i]?.personaEmoji || ""} ${v}`}
                 />
                 <ChartTooltip
                   content={

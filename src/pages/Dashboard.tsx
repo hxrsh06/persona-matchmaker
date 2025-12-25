@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
@@ -20,19 +20,13 @@ const Dashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (tenant) {
-      loadStats();
-    }
-  }, [tenant]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!tenant) return;
 
     try {
       const [productsRes, personasRes, analysisRes] = await Promise.all([
-        supabase.from("products").select("id", { count: "exact" }).eq("tenant_id", tenant.id),
-        supabase.from("personas").select("id", { count: "exact" }).eq("tenant_id", tenant.id).eq("is_active", true),
+        supabase.from("products").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+        supabase.from("personas").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id).eq("is_active", true),
         supabase.from("analysis_results").select("like_probability").eq("tenant_id", tenant.id),
       ]);
 
@@ -51,7 +45,13 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant]);
+
+  useEffect(() => {
+    if (tenant) {
+      loadStats();
+    }
+  }, [tenant, loadStats]);
 
   if (loading) {
     return (
@@ -100,7 +100,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome to {tenant.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Welcome to {tenant?.name || "Dashboard"}</h1>
         <p className="text-muted-foreground mt-1">
           AI-powered product-persona matching analytics
         </p>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer,
 } from "recharts";
 import { Palette, TrendingUp, Layers } from "lucide-react";
 
@@ -61,13 +60,7 @@ const StyleClusterAnalytics = () => {
   const [clusters, setClusters] = useState<StyleCluster[]>([]);
   const [productsByCluster, setProductsByCluster] = useState<Record<string, ProductStyleData[]>>({});
 
-  useEffect(() => {
-    if (tenant) {
-      loadStyleAnalytics();
-    }
-  }, [tenant]);
-
-  const classifyProduct = (product: any): string => {
+  const classifyProduct = useCallback((product: any): string => {
     const features = product.extracted_features || {};
     const searchText = [
       features.fit,
@@ -88,38 +81,39 @@ const StyleClusterAnalytics = () => {
         return cluster.name;
       }
     }
-    return "Minimal"; // Default fallback
-  };
+    return "Minimal";
+  }, []);
 
-  const loadStyleAnalytics = async () => {
+  const loadStyleAnalytics = useCallback(async () => {
     if (!tenant) return;
 
     try {
-      // Fetch products with their analysis results
-      const { data: products } = await supabase
-        .from("products")
-        .select("id, name, category, subcategory, price, description, extracted_features")
-        .eq("tenant_id", tenant.id)
-        .eq("status", "analyzed");
+      const [productsRes, analysesRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("id, name, category, subcategory, price, description, extracted_features")
+          .eq("tenant_id", tenant.id)
+          .eq("status", "analyzed"),
+        supabase
+          .from("analysis_results")
+          .select("product_id, like_probability")
+          .eq("tenant_id", tenant.id),
+      ]);
 
-      const { data: analyses } = await supabase
-        .from("analysis_results")
-        .select("product_id, like_probability")
-        .eq("tenant_id", tenant.id);
+      const products = productsRes.data;
+      const analyses = analysesRes.data;
 
       if (!products) {
         setLoading(false);
         return;
       }
 
-      // Calculate average match score per product
       const productScores: Record<string, number[]> = {};
       analyses?.forEach((a) => {
         if (!productScores[a.product_id]) productScores[a.product_id] = [];
         productScores[a.product_id].push(a.like_probability);
       });
 
-      // Classify and group products
       const grouped: Record<string, ProductStyleData[]> = {};
       STYLE_CLUSTERS.forEach((c) => (grouped[c.name] = []));
 
@@ -142,7 +136,6 @@ const StyleClusterAnalytics = () => {
 
       setProductsByCluster(grouped);
 
-      // Calculate cluster metrics
       const clusterMetrics = STYLE_CLUSTERS.map((c) => {
         const prods = grouped[c.name] || [];
         const avgMatch = prods.length
@@ -167,7 +160,13 @@ const StyleClusterAnalytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant, classifyProduct]);
+
+  useEffect(() => {
+    if (tenant) {
+      loadStyleAnalytics();
+    }
+  }, [tenant, loadStyleAnalytics]);
 
   const chartConfig = {
     avgMatchScore: { label: "Match Score", color: "hsl(var(--primary))" },
@@ -186,7 +185,7 @@ const StyleClusterAnalytics = () => {
     );
   }
 
-  const activeClsuters = clusters.filter((c) => c.count > 0);
+  const activeClusters = clusters.filter((c) => c.count > 0);
   const totalProducts = clusters.reduce((a, b) => a + b.count, 0);
 
   return (
@@ -201,7 +200,7 @@ const StyleClusterAnalytics = () => {
             <Palette className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeClsuters.length}</div>
+            <div className="text-2xl font-bold">{activeClusters.length}</div>
             <p className="text-xs text-muted-foreground">of {STYLE_CLUSTERS.length} active</p>
           </CardContent>
         </Card>
@@ -214,13 +213,13 @@ const StyleClusterAnalytics = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {activeClsuters.length > 0 ? (
+            {activeClusters.length > 0 ? (
               <>
                 <div className="text-2xl font-bold">
-                  {[...activeClsuters].sort((a, b) => b.avgMatchScore - a.avgMatchScore)[0]?.name}
+                  {[...activeClusters].sort((a, b) => b.avgMatchScore - a.avgMatchScore)[0]?.name}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {[...activeClsuters].sort((a, b) => b.avgMatchScore - a.avgMatchScore)[0]?.avgMatchScore}% avg match
+                  {[...activeClusters].sort((a, b) => b.avgMatchScore - a.avgMatchScore)[0]?.avgMatchScore}% avg match
                 </p>
               </>
             ) : (
@@ -251,10 +250,10 @@ const StyleClusterAnalytics = () => {
             <CardDescription>Average match score by aesthetic cluster</CardDescription>
           </CardHeader>
           <CardContent>
-            {activeClsuters.length > 0 ? (
+            {activeClusters.length > 0 ? (
               <ChartContainer config={chartConfig} className="h-[280px] w-full">
                 <BarChart
-                  data={activeClsuters.sort((a, b) => b.avgMatchScore - a.avgMatchScore)}
+                  data={activeClusters.sort((a, b) => b.avgMatchScore - a.avgMatchScore)}
                   layout="vertical"
                   margin={{ left: 20, right: 30 }}
                 >
@@ -272,7 +271,7 @@ const StyleClusterAnalytics = () => {
                     }
                   />
                   <Bar dataKey="avgMatchScore" radius={[0, 4, 4, 0]}>
-                    {activeClsuters.map((entry, index) => (
+                    {activeClusters.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Bar>
@@ -293,7 +292,7 @@ const StyleClusterAnalytics = () => {
             <CardDescription>Product count by aesthetic cluster</CardDescription>
           </CardHeader>
           <CardContent>
-            {activeClsuters.length > 0 ? (
+            {activeClusters.length > 0 ? (
               <ChartContainer config={chartConfig} className="h-[280px] w-full">
                 <PieChart>
                   <ChartTooltip
@@ -304,7 +303,7 @@ const StyleClusterAnalytics = () => {
                     }
                   />
                   <Pie
-                    data={activeClsuters}
+                    data={activeClusters}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -315,7 +314,7 @@ const StyleClusterAnalytics = () => {
                     label={({ name, count }) => `${name}: ${count}`}
                     labelLine={false}
                   >
-                    {activeClsuters.map((entry, index) => (
+                    {activeClusters.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>

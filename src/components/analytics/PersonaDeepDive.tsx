@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +14,6 @@ import {
 import {
   ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
   RadarChart,
@@ -23,8 +21,6 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
 import { Users, Sparkles, Target } from "lucide-react";
 
@@ -56,19 +52,26 @@ const PersonaDeepDive = () => {
   const [categoryAffinities, setCategoryAffinities] = useState<CategoryAffinity[]>([]);
   const [stylePreferences, setStylePreferences] = useState<StylePreference[]>([]);
 
-  useEffect(() => {
-    if (tenant) {
-      loadPersonaData();
-    }
-  }, [tenant]);
+  const loadPersonaStylePreferences = useCallback(() => {
+    const persona = personas.find((p) => p.id === selectedPersona);
+    if (!persona) return;
 
-  useEffect(() => {
-    if (selectedPersona && personas.length > 0) {
-      loadPersonaStylePreferences();
-    }
-  }, [selectedPersona, personas]);
+    const psycho = persona.psychographics || {};
+    const price = persona.priceBehavior || {};
 
-  const loadPersonaData = async () => {
+    const preferences: StylePreference[] = [
+      { attribute: "Quality Focus", value: psycho.quality_importance || 70 },
+      { attribute: "Brand Consciousness", value: psycho.brand_importance || 50 },
+      { attribute: "Price Sensitivity", value: price.price_sensitivity ? price.price_sensitivity * 20 : 60 },
+      { attribute: "Trend Following", value: psycho.trend_awareness || 40 },
+      { attribute: "Sustainability", value: psycho.sustainability_concern || 30 },
+      { attribute: "Impulse Buying", value: psycho.impulse_tendency || 45 },
+    ];
+
+    setStylePreferences(preferences);
+  }, [personas, selectedPersona]);
+
+  const loadPersonaData = useCallback(async () => {
     if (!tenant) return;
 
     try {
@@ -89,13 +92,11 @@ const PersonaDeepDive = () => {
       const analyses = analysesRes.data || [];
       const products = productsRes.data || [];
 
-      // Create product category map
       const productCategoryMap: Record<string, string> = {};
       products.forEach((p) => {
         productCategoryMap[p.id] = p.category;
       });
 
-      // Calculate persona metrics
       const personaMetrics: PersonaData[] = personasData.map((p: any) => {
         const personaAnalyses = analyses.filter((a) => a.persona_id === p.id);
         const avgScore = personaAnalyses.length
@@ -118,7 +119,6 @@ const PersonaDeepDive = () => {
         setSelectedPersona(personaMetrics[0].id);
       }
 
-      // Calculate category affinities
       const categories = [...new Set(products.map((p) => p.category))];
       const affinities: CategoryAffinity[] = categories.map((category) => {
         const categoryProducts = products.filter((p) => p.category === category).map((p) => p.id);
@@ -142,27 +142,19 @@ const PersonaDeepDive = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenant]);
 
-  const loadPersonaStylePreferences = () => {
-    const persona = personas.find((p) => p.id === selectedPersona);
-    if (!persona) return;
+  useEffect(() => {
+    if (tenant) {
+      loadPersonaData();
+    }
+  }, [tenant, loadPersonaData]);
 
-    // Extract style preferences from persona attributes
-    const psycho = persona.psychographics || {};
-    const price = persona.priceBehavior || {};
-
-    const preferences: StylePreference[] = [
-      { attribute: "Quality Focus", value: psycho.quality_importance || 70 },
-      { attribute: "Brand Consciousness", value: psycho.brand_importance || 50 },
-      { attribute: "Price Sensitivity", value: price.price_sensitivity ? price.price_sensitivity * 20 : 60 },
-      { attribute: "Trend Following", value: psycho.trend_awareness || 40 },
-      { attribute: "Sustainability", value: psycho.sustainability_concern || 30 },
-      { attribute: "Impulse Buying", value: psycho.impulse_tendency || 45 },
-    ];
-
-    setStylePreferences(preferences);
-  };
+  useEffect(() => {
+    if (selectedPersona && personas.length > 0) {
+      loadPersonaStylePreferences();
+    }
+  }, [selectedPersona, personas, loadPersonaStylePreferences]);
 
   const chartConfig = {
     value: { label: "Score", color: "hsl(var(--primary))" },

@@ -10,11 +10,9 @@ import {
   Bar,
   XAxis,
   YAxis,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  LineChart,
   Line,
   CartesianGrid,
   Legend,
@@ -125,7 +123,7 @@ const AnalyticsCharts = ({ topProducts, personaPerformance }: AnalyticsChartsPro
                   paddingAngle={4}
                   dataKey="value"
                   nameKey="name"
-                  label={({ name, value }) => `${value}%`}
+                  label={({ value }) => `${value}%`}
                   labelLine={false}
                 >
                   {personaData.map((_, index) => (
