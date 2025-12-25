@@ -1,7 +1,7 @@
 project_id = "jahlyvuxftafdwssgkyd"
 
 [functions.analyze-product]
-verify_jwt = true
+verify_jwt = false
 
 [functions.extract-image-features]
 verify_jwt = true
