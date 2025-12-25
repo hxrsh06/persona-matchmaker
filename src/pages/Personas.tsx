@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, Users, Sparkles, Database, FlaskConical } from "lucide-react";
+import { RefreshCw, Users, Database, FlaskConical, Lock, Sparkles } from "lucide-react";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -45,7 +45,7 @@ const Personas = () => {
   const { toast } = useToast();
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(true);
-  const [regenerating, setRegenerating] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
 
   useEffect(() => {
@@ -76,31 +76,66 @@ const Personas = () => {
     setLoading(false);
   };
 
-  const regeneratePersonas = async () => {
+  const seedPersonas = async () => {
     if (!tenant) return;
-    setRegenerating(true);
+    setActionLoading(true);
 
     try {
       const response = await supabase.functions.invoke("regenerate-apparel-personas", {
-        body: { tenantId: tenant.id, action: "reset" },
+        body: { tenantId: tenant.id, action: "seed" },
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data.locked && !response.data.success) {
+        toast({
+          title: "Persona Universe Locked",
+          description: response.data.message,
+        });
+      } else {
+        toast({
+          title: "Personas initialized",
+          description: `Created ${response.data.personasCreated} canonical personas. Universe is now locked.`,
+        });
+      }
+
+      loadPersonas();
+    } catch (error: any) {
+      toast({
+        title: "Failed to initialize personas",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const refreshAttributes = async () => {
+    if (!tenant) return;
+    setActionLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke("regenerate-apparel-personas", {
+        body: { tenantId: tenant.id, action: "update_attributes" },
       });
 
       if (response.error) throw response.error;
 
       toast({
-        title: "Personas regenerated",
-        description: `Created ${response.data.personasCreated} canonical apparel personas with 100+ attributes each`,
+        title: "Attributes refreshed",
+        description: `Updated ${response.data.updatedCount} personas. Universe remains locked.`,
       });
 
       loadPersonas();
     } catch (error: any) {
       toast({
-        title: "Failed to regenerate personas",
+        title: "Failed to refresh attributes",
         description: error.message || "Please try again",
         variant: "destructive",
       });
     } finally {
-      setRegenerating(false);
+      setActionLoading(false);
     }
   };
 
@@ -141,6 +176,8 @@ const Personas = () => {
     return demographics?.age_band || "";
   };
 
+  const isUniverseLocked = personas.length === 10;
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -167,25 +204,67 @@ const Personas = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {isUniverseLocked && (
+            <Badge variant="outline" className="gap-1.5 py-1 border-primary/50 text-primary">
+              <Lock className="w-3 h-3" />
+              <span className="text-xs">Locked</span>
+            </Badge>
+          )}
           <Badge variant="outline" className="gap-1.5 py-1">
             <FlaskConical className="w-3 h-3" />
             <span className="text-xs">Synthetic v0</span>
           </Badge>
-          <Button onClick={regeneratePersonas} disabled={regenerating}>
-            {regenerating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Regenerating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Regenerate Personas
-              </>
-            )}
-          </Button>
+          {personas.length > 0 ? (
+            <Button onClick={refreshAttributes} disabled={actionLoading} variant="outline">
+              {actionLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh Attributes
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button onClick={seedPersonas} disabled={actionLoading}>
+              {actionLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Initializing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Initialize Personas
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Locked Universe Banner */}
+      {isUniverseLocked && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">Persona Universe: Locked</p>
+              <p className="text-xs text-muted-foreground">
+                10 canonical personas (5F, 5M) are fixed by design. Only attributes and metrics can be updated.
+              </p>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              Fixed Set
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Data Source Banner */}
       <Card className="border-dashed bg-muted/30">
@@ -231,9 +310,12 @@ const Personas = () => {
                     >
                       {persona.gender === "female" ? "F" : "M"}
                     </Badge>
-                    <Badge variant="outline" className="text-[8px] py-0">
-                      v0
-                    </Badge>
+                    <div className="flex items-center gap-0.5">
+                      <Lock className="w-2.5 h-2.5 text-muted-foreground" />
+                      <Badge variant="outline" className="text-[8px] py-0">
+                        v0
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -311,18 +393,18 @@ const Personas = () => {
             </div>
             <h3 className="font-medium mb-2">No personas configured</h3>
             <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
-              Generate 10 canonical apparel consumer personas with 100+ attributes for analytics and swipe data integration
+              Initialize the fixed persona universe with 10 canonical apparel personas (5 female, 5 male). Once created, personas are locked and only their attributes can be updated.
             </p>
-            <Button onClick={regeneratePersonas} disabled={regenerating}>
-              {regenerating ? (
+            <Button onClick={seedPersonas} disabled={actionLoading}>
+              {actionLoading ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
+                  Initializing...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Personas
+                  Initialize Persona Universe
                 </>
               )}
             </Button>

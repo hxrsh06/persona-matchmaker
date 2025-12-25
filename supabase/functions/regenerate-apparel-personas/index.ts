@@ -2418,6 +2418,51 @@ function calculatePersonaAnalytics(persona: typeof CANONICAL_PERSONAS[0]) {
 }
 
 // =============================================================================
+// APPROVED PERSONA IDS - Fixed Universe (5 Female, 5 Male)
+// =============================================================================
+
+const APPROVED_PERSONA_IDS = [
+  "urban_comfort_creator_f_24_32",
+  "trend_first_campus_styler_f_18_24",
+  "premium_office_minimalist_f_28_38",
+  "value_focused_tier2_explorer_f_20_30",
+  "ethnic_fusion_weekender_f_25_35",
+  "metro_smart_casualist_m_24_34",
+  "genz_streetwear_seeker_m_18_24",
+  "formal_first_professional_m_28_40",
+  "budget_conscious_everyday_wearer_m_20_30",
+  "athleisure_heavy_fitness_worker_m_22_35"
+];
+
+// =============================================================================
+// VALIDATION FUNCTION - Ensure Persona Integrity
+// =============================================================================
+
+function validatePersonaIntegrity(personas: { canonical_persona_id: string; gender: string }[]): { valid: boolean; message: string } {
+  if (personas.length !== 10) {
+    return { valid: false, message: `Expected 10 personas, found ${personas.length}` };
+  }
+  
+  const females = personas.filter(p => p.gender === "female");
+  const males = personas.filter(p => p.gender === "male");
+  
+  if (females.length !== 5) {
+    return { valid: false, message: `Expected 5 female personas, found ${females.length}` };
+  }
+  
+  if (males.length !== 5) {
+    return { valid: false, message: `Expected 5 male personas, found ${males.length}` };
+  }
+  
+  const invalidIds = personas.filter(p => !APPROVED_PERSONA_IDS.includes(p.canonical_persona_id));
+  if (invalidIds.length > 0) {
+    return { valid: false, message: `Found ${invalidIds.length} personas with non-approved IDs` };
+  }
+  
+  return { valid: true, message: "Persona integrity validated: 10 personas (5F, 5M) with approved IDs" };
+}
+
+// =============================================================================
 // MAIN SERVE FUNCTION
 // =============================================================================
 
@@ -2475,14 +2520,163 @@ serve(async (req) => {
       );
     }
 
-    // Delete existing data
-    console.log("[regenerate-personas] Clearing existing data...");
-    
-    await supabase.from("analysis_results").delete().eq("tenant_id", tenantId);
-    await supabase.from("persona_analytics").delete().eq("tenant_id", tenantId);
-    await supabase.from("personas").delete().eq("tenant_id", tenantId);
+    // =========================================================================
+    // ACTION HANDLERS - Locked Persona Universe
+    // =========================================================================
 
-    // Insert new personas
+    // Check existing personas
+    const { data: existingPersonas, error: fetchError } = await supabase
+      .from("personas")
+      .select("id, canonical_persona_id, gender")
+      .eq("tenant_id", tenantId)
+      .eq("is_active", true);
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch existing personas: ${fetchError.message}`);
+    }
+
+    const personaCount = existingPersonas?.length || 0;
+
+    // Handle different actions
+    if (action === "seed") {
+      // SEED: Only create personas if none exist
+      if (personaCount > 0) {
+        console.log(`[regenerate-personas] Personas already exist (${personaCount}). Locked universe - cannot regenerate.`);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            locked: true,
+            message: "Persona universe is fixed. 10 canonical personas already exist. Use 'update_attributes' to refresh attributes and metrics.",
+            existingCount: personaCount
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Proceed with initial seed
+      console.log("[regenerate-personas] Seeding fixed persona universe (10 personas: 5F, 5M)...");
+      
+    } else if (action === "update_attributes") {
+      // UPDATE_ATTRIBUTES: Only update existing personas, do not create/delete
+      if (personaCount === 0) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "No personas exist. Use 'seed' action to initialize the fixed persona universe first."
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`[regenerate-personas] Updating attributes for ${personaCount} locked personas...`);
+      
+      // Update each existing persona's attributes and analytics
+      let updatedCount = 0;
+      for (const existingPersona of existingPersonas!) {
+        const canonicalData = CANONICAL_PERSONAS.find(
+          p => p.canonical_persona_id === existingPersona.canonical_persona_id
+        );
+        
+        if (!canonicalData) {
+          console.warn(`[regenerate-personas] No canonical data for ${existingPersona.canonical_persona_id}`);
+          continue;
+        }
+
+        const attributeVector = generateAttributeVector(canonicalData);
+        const analytics = calculatePersonaAnalytics(canonicalData);
+
+        // Update persona attributes (but not identity fields)
+        await supabase
+          .from("personas")
+          .update({
+            attribute_vector: attributeVector,
+            demographics: canonicalData.demographics,
+            lifestyle: canonicalData.lifestyle,
+            fashion_orientation: canonicalData.fashion_orientation,
+            psychographics: canonicalData.psychographics,
+            shopping_preferences: canonicalData.shopping_preferences,
+            product_preferences: canonicalData.product_preferences,
+            price_behavior: canonicalData.price_behavior,
+            brand_psychology: canonicalData.brand_psychology,
+            digital_behavior: canonicalData.digital_behavior,
+            fit_silhouette_preferences: canonicalData.fit_silhouette_preferences,
+            fabric_material_preferences: canonicalData.fabric_material_preferences,
+            color_pattern_preferences: canonicalData.color_pattern_preferences,
+            lifecycle_loyalty: canonicalData.lifecycle_loyalty,
+            segment_weight: canonicalData.segment_weight,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existingPersona.id);
+
+        // Update persona analytics
+        await supabase
+          .from("persona_analytics")
+          .upsert({
+            tenant_id: tenantId,
+            persona_id: existingPersona.id,
+            ...analytics
+          }, { onConflict: "persona_id,analytics_date" });
+
+        updatedCount++;
+      }
+
+      // Validate integrity after update
+      const validation = validatePersonaIntegrity(existingPersonas!);
+      console.log(`[regenerate-personas] ${validation.message}`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          action: "update_attributes",
+          locked: true,
+          updatedCount,
+          message: `Updated attributes and metrics for ${updatedCount} locked personas. Universe remains fixed at 10 (5F, 5M).`,
+          validation
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
+    } else if (action === "reset" || action === "regenerate") {
+      // BLOCKED: Regeneration is forbidden
+      console.log(`[regenerate-personas] Blocked action '${action}' - persona universe is locked.`);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          locked: true,
+          message: "The persona universe is fixed by design. You cannot regenerate, delete, or create new personas. Use 'update_attributes' to refresh attributes and metrics only."
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
+    } else if (!action || action === "" || action === undefined) {
+      // Default to seed if no action provided
+      if (personaCount > 0) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            locked: true,
+            message: "Persona universe is fixed. 10 canonical personas already exist. Use 'update_attributes' to refresh attributes and metrics.",
+            existingCount: personaCount
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Fall through to seed
+      console.log("[regenerate-personas] No action specified, defaulting to seed...");
+    } else {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: `Unknown action: ${action}. Valid actions are 'seed' (initial setup) or 'update_attributes' (refresh metrics).`
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // =========================================================================
+    // SEED: Create fixed persona universe (only runs if personaCount === 0)
+    // =========================================================================
+
     console.log("[regenerate-personas] Creating 10 canonical personas with 100+ attributes...");
     
     const personasCreated: string[] = [];
@@ -2628,16 +2822,28 @@ serve(async (req) => {
       onConflict: "tenant_id,analytics_date" 
     });
 
-    console.log(`[regenerate-personas] Complete! Created ${personasCreated.length} personas`);
+    // Validate the seeded personas
+    const { data: seededPersonas } = await supabase
+      .from("personas")
+      .select("canonical_persona_id, gender")
+      .eq("tenant_id", tenantId)
+      .eq("is_active", true);
+
+    const validation = validatePersonaIntegrity(seededPersonas || []);
+    console.log(`[regenerate-personas] ${validation.message}`);
+    console.log(`[regenerate-personas] Complete! Seeded ${personasCreated.length} locked personas`);
 
     return new Response(
       JSON.stringify({
         success: true,
+        action: "seed",
+        locked: true,
         personasCreated: personasCreated.length,
         personas: personasCreated,
         metricsCreated: METRIC_CATALOG.length,
         dataSourceStatus: "modeled_v0",
-        notes: "This is a cold-start, synthetic, research-based digital twin. All values are modeled_v0 (hypothesis-driven). Data will be refined once real swipe data and customer behavior is available."
+        validation,
+        notes: "Fixed persona universe initialized. 10 canonical personas (5F, 5M) are now locked. Only attributes and metrics can be updated going forward."
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
