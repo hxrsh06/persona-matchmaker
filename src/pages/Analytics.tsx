@@ -270,6 +270,12 @@ const Analytics = () => {
         </Card>
       </div>
 
+      {/* Charts Section */}
+      <AnalyticsCharts 
+        topProducts={summary?.topPerformingProducts || []}
+        personaPerformance={summary?.personaPerformance || []}
+      />
+
       {/* What-If Simulator */}
       <Card className="border-border/50">
         <CardHeader>
