@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      aggregate_analytics: {
+        Row: {
+          analytics_date: string
+          avg_discount_rate: number | null
+          created_at: string
+          female_revenue_ratio: number | null
+          id: string
+          metro_non_metro_ratio: number | null
+          persona_segment_weights: Json | null
+          premium_segment_share: number | null
+          price_elasticity_distribution: Json | null
+          regional_style_divergence: Json | null
+          tenant_id: string
+          top_channel_breakdown: Json | null
+          top_personas_by_revenue: Json | null
+          total_online_ratio: number | null
+        }
+        Insert: {
+          analytics_date?: string
+          avg_discount_rate?: number | null
+          created_at?: string
+          female_revenue_ratio?: number | null
+          id?: string
+          metro_non_metro_ratio?: number | null
+          persona_segment_weights?: Json | null
+          premium_segment_share?: number | null
+          price_elasticity_distribution?: Json | null
+          regional_style_divergence?: Json | null
+          tenant_id: string
+          top_channel_breakdown?: Json | null
+          top_personas_by_revenue?: Json | null
+          total_online_ratio?: number | null
+        }
+        Update: {
+          analytics_date?: string
+          avg_discount_rate?: number | null
+          created_at?: string
+          female_revenue_ratio?: number | null
+          id?: string
+          metro_non_metro_ratio?: number | null
+          persona_segment_weights?: Json | null
+          premium_segment_share?: number | null
+          price_elasticity_distribution?: Json | null
+          regional_style_divergence?: Json | null
+          tenant_id?: string
+          top_channel_breakdown?: Json | null
+          top_personas_by_revenue?: Json | null
+          total_online_ratio?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aggregate_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analysis_history: {
         Row: {
           action_type: string
@@ -167,20 +226,124 @@ export type Database = {
           },
         ]
       }
+      persona_analytics: {
+        Row: {
+          above_median_purchase_pct: number | null
+          analytics_date: string
+          avg_discount_availed: number | null
+          avg_lifetime_value: number | null
+          browse_to_cart_ratio: number | null
+          cart_to_purchase_ratio: number | null
+          category_contributions: Json | null
+          category_frequency: Json | null
+          classic_trendy_ratio: number | null
+          created_at: string
+          cross_category_adoption: number | null
+          full_price_discount_ratio: number | null
+          id: string
+          marketplace_brand_ratio: number | null
+          mobile_desktop_ratio: number | null
+          neutral_color_bold_ratio: number | null
+          online_offline_ratio: number | null
+          persona_id: string | null
+          price_elasticity_segment: string | null
+          repeat_purchase_rate: number | null
+          return_rate: number | null
+          solid_prints_ratio: number | null
+          tenant_id: string
+          wishlist_to_purchase_ratio: number | null
+        }
+        Insert: {
+          above_median_purchase_pct?: number | null
+          analytics_date?: string
+          avg_discount_availed?: number | null
+          avg_lifetime_value?: number | null
+          browse_to_cart_ratio?: number | null
+          cart_to_purchase_ratio?: number | null
+          category_contributions?: Json | null
+          category_frequency?: Json | null
+          classic_trendy_ratio?: number | null
+          created_at?: string
+          cross_category_adoption?: number | null
+          full_price_discount_ratio?: number | null
+          id?: string
+          marketplace_brand_ratio?: number | null
+          mobile_desktop_ratio?: number | null
+          neutral_color_bold_ratio?: number | null
+          online_offline_ratio?: number | null
+          persona_id?: string | null
+          price_elasticity_segment?: string | null
+          repeat_purchase_rate?: number | null
+          return_rate?: number | null
+          solid_prints_ratio?: number | null
+          tenant_id: string
+          wishlist_to_purchase_ratio?: number | null
+        }
+        Update: {
+          above_median_purchase_pct?: number | null
+          analytics_date?: string
+          avg_discount_availed?: number | null
+          avg_lifetime_value?: number | null
+          browse_to_cart_ratio?: number | null
+          cart_to_purchase_ratio?: number | null
+          category_contributions?: Json | null
+          category_frequency?: Json | null
+          classic_trendy_ratio?: number | null
+          created_at?: string
+          cross_category_adoption?: number | null
+          full_price_discount_ratio?: number | null
+          id?: string
+          marketplace_brand_ratio?: number | null
+          mobile_desktop_ratio?: number | null
+          neutral_color_bold_ratio?: number | null
+          online_offline_ratio?: number | null
+          persona_id?: string | null
+          price_elasticity_segment?: string | null
+          repeat_purchase_rate?: number | null
+          return_rate?: number | null
+          solid_prints_ratio?: number | null
+          tenant_id?: string
+          wishlist_to_purchase_ratio?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "persona_analytics_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "persona_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personas: {
         Row: {
           attribute_vector: Json
           avatar_emoji: string | null
           brand_psychology: Json
+          category_affinities: Json | null
           created_at: string
           demographics: Json
           description: string | null
+          digital_behavior: Json | null
+          fashion_orientation: Json | null
+          gender: string | null
           id: string
           is_active: boolean | null
+          lifestyle: Json | null
           name: string
           price_behavior: Json
           product_preferences: Json
           psychographics: Json
+          segment_code: string | null
+          segment_name: string | null
+          segment_weight: number | null
           shopping_preferences: Json
           tenant_id: string
           updated_at: string
@@ -189,15 +352,23 @@ export type Database = {
           attribute_vector?: Json
           avatar_emoji?: string | null
           brand_psychology?: Json
+          category_affinities?: Json | null
           created_at?: string
           demographics?: Json
           description?: string | null
+          digital_behavior?: Json | null
+          fashion_orientation?: Json | null
+          gender?: string | null
           id?: string
           is_active?: boolean | null
+          lifestyle?: Json | null
           name: string
           price_behavior?: Json
           product_preferences?: Json
           psychographics?: Json
+          segment_code?: string | null
+          segment_name?: string | null
+          segment_weight?: number | null
           shopping_preferences?: Json
           tenant_id: string
           updated_at?: string
@@ -206,15 +377,23 @@ export type Database = {
           attribute_vector?: Json
           avatar_emoji?: string | null
           brand_psychology?: Json
+          category_affinities?: Json | null
           created_at?: string
           demographics?: Json
           description?: string | null
+          digital_behavior?: Json | null
+          fashion_orientation?: Json | null
+          gender?: string | null
           id?: string
           is_active?: boolean | null
+          lifestyle?: Json | null
           name?: string
           price_behavior?: Json
           product_preferences?: Json
           psychographics?: Json
+          segment_code?: string | null
+          segment_name?: string | null
+          segment_weight?: number | null
           shopping_preferences?: Json
           tenant_id?: string
           updated_at?: string
