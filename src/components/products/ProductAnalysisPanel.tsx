@@ -82,6 +82,13 @@ const ProductAnalysisPanel = ({ product, onClose, onAnalysisComplete }: ProductA
     setAnalyzing(true);
 
     try {
+      // Ensure we have a valid session before calling the edge function
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error("Please sign in again to analyze products");
+      }
+
       const response = await supabase.functions.invoke("analyze-product", {
         body: { productId: product.id, tenantId: tenant.id },
       });
