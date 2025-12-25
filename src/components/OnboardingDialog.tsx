@@ -56,15 +56,16 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
           throw response.error;
         }
 
+        const { personasCreated, productsCreated } = response.data;
         toast({
-          title: "Personas generated!",
-          description: `Created ${response.data.personasCreated} AI personas for your brand.`,
+          title: "Setup complete!",
+          description: `Created ${personasCreated} AI personas and ${productsCreated || 0} demo products for you to explore.`,
         });
       } catch (error) {
         console.error("Error generating personas:", error);
         toast({
-          title: "Personas will be generated soon",
-          description: "You can start adding products while we set up your personas.",
+          title: "Setup will complete soon",
+          description: "You can start exploring while we set up your personas and demo data.",
         });
       }
 
@@ -123,7 +124,7 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
-            We'll create 5 AI-powered consumer personas tailored for your brand
+            We'll create 5 AI personas and sample products to help you explore
           </p>
         </form>
       </DialogContent>
