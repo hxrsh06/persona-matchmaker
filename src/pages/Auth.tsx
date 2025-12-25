@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import swirlLogo from "@/assets/swirl-logo.png";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -95,9 +96,9 @@ const Auth = () => {
       <Card className="w-full max-w-md relative z-10 border-border/50 shadow-xl">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
-            <Sparkles className="w-6 h-6 text-primary" />
+            <img src={swirlLogo} alt="SWIRL" className="w-6 h-6" />
           </div>
-          <CardTitle className="text-2xl font-semibold">Lovable Twin</CardTitle>
+          <CardTitle className="text-2xl font-semibold">SWIRL</CardTitle>
           <CardDescription>
             AI-powered product-persona matching for your brand
           </CardDescription>
@@ -130,7 +131,7 @@ const Auth = () => {
                     <Input
                       id="login-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -185,7 +186,7 @@ const Auth = () => {
                     <Input
                       id="signup-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Create a password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required

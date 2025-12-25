@@ -281,7 +281,9 @@ const Analytics = () => {
                   <div className="space-y-3">
                     {summary.personaPerformance.map((persona) => (
                       <div key={persona.name} className="flex items-center gap-3">
-                        <span className="text-2xl">{persona.emoji}</span>
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                          {persona.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{persona.name}</p>
                         </div>

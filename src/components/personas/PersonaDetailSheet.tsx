@@ -180,7 +180,13 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{persona.avatar_emoji}</span>
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-semibold ${
+              persona.gender === "female" 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-secondary text-secondary-foreground"
+            }`}>
+              {persona.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+            </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <SheetTitle className="text-xl">{persona.name}</SheetTitle>

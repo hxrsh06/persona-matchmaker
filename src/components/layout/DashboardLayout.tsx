@@ -36,10 +36,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Sparkles,
   ChevronDown,
   Building2,
 } from "lucide-react";
+import swirlLogo from "@/assets/swirl-logo.png";
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -106,11 +106,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <SidebarHeader className="p-4 border-b border-border/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-primary" />
+                <img src={swirlLogo} alt="SWIRL" className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold text-sm truncate">Lovable Twin</h1>
-                <p className="text-xs text-muted-foreground truncate">Persona Analytics</p>
+                <h1 className="font-semibold text-sm truncate">SWIRL</h1>
+                <p className="text-xs text-muted-foreground truncate">Apparel Analytics</p>
               </div>
             </div>
             
