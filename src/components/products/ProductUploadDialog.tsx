@@ -29,13 +29,8 @@ interface ProductUploadDialogProps {
 }
 
 const CATEGORIES = [
-  { value: "bra", label: "Bra" },
-  { value: "panty", label: "Panty" },
-  { value: "sportswear", label: "Sportswear" },
-  { value: "nightwear", label: "Nightwear" },
-  { value: "camisole", label: "Camisole" },
-  { value: "shapewear", label: "Shapewear" },
-  { value: "set", label: "Set" },
+  { value: "tshirt", label: "T-Shirt" },
+  { value: "pants", label: "Pants" },
 ];
 
 const ProductUploadDialog = ({ open, onOpenChange, onSuccess }: ProductUploadDialogProps) => {
@@ -268,7 +263,7 @@ const ProductUploadDialog = ({ open, onOpenChange, onSuccess }: ProductUploadDia
                 id="subcategory"
                 value={formData.subcategory}
                 onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-                placeholder="e.g., T-shirt bra, Sports bra"
+                placeholder="e.g., Crew neck, V-neck, Slim fit jeans"
               />
             </div>
 

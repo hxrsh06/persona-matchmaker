@@ -1048,11 +1048,11 @@ const BASE_PERSONAS = [
   }
 ];
 
-// General Apparel Demo Products
+// T-Shirt and Pants Only Demo Products
 const DEMO_PRODUCTS = [
   {
     name: "Classic Cotton Crew Tee",
-    category: "tshirts",
+    category: "tshirt",
     subcategory: "basics",
     price: 799,
     original_price: 999,
@@ -1073,42 +1073,86 @@ const DEMO_PRODUCTS = [
     }
   },
   {
-    name: "Premium Oxford Shirt",
-    category: "shirts",
-    subcategory: "formal",
-    price: 1899,
-    original_price: 2299,
-    description: "Button-down oxford shirt in premium cotton. Slim fit with wrinkle-resistant finish for office wear.",
-    tags: ["oxford", "formal", "slim-fit", "premium-cotton", "workwear"],
+    name: "Graphic Print Tee",
+    category: "tshirt",
+    subcategory: "graphic",
+    price: 899,
+    original_price: 1199,
+    description: "Bold graphic print t-shirt with relaxed fit. Premium cotton blend for statement style.",
+    tags: ["graphic", "print", "relaxed-fit", "statement", "casual"],
     brand: "Lovable Apparel",
-    sku: "DEMO-SHT-001",
+    sku: "DEMO-TSH-002",
     status: "analyzed",
     extracted_features: {
-      material: "premium-cotton",
-      style: "formal",
-      fit: "slim",
-      neckline: "collar",
-      sleeve: "full",
-      color: "white",
-      pattern: "solid",
-      occasion: "work"
+      material: "cotton-blend",
+      style: "casual",
+      fit: "relaxed",
+      neckline: "crew",
+      sleeve: "half",
+      color: "black",
+      pattern: "graphic",
+      occasion: "casual"
     }
   },
   {
-    name: "Stretch Denim Jeans",
-    category: "jeans",
-    subcategory: "casual",
+    name: "V-Neck Essential Tee",
+    category: "tshirt",
+    subcategory: "basics",
+    price: 699,
+    original_price: 899,
+    description: "Classic v-neck t-shirt in soft cotton. Slim fit for a modern silhouette.",
+    tags: ["v-neck", "slim-fit", "basics", "cotton", "essential"],
+    brand: "Lovable Apparel",
+    sku: "DEMO-TSH-003",
+    status: "analyzed",
+    extracted_features: {
+      material: "cotton",
+      style: "casual",
+      fit: "slim",
+      neckline: "v-neck",
+      sleeve: "half",
+      color: "white",
+      pattern: "solid",
+      occasion: "everyday"
+    }
+  },
+  {
+    name: "Oversized Street Tee",
+    category: "tshirt",
+    subcategory: "streetwear",
+    price: 1099,
+    original_price: 1399,
+    description: "Oversized drop-shoulder t-shirt for streetwear style. Heavy cotton construction.",
+    tags: ["oversized", "streetwear", "drop-shoulder", "heavy-cotton", "urban"],
+    brand: "Lovable Apparel",
+    sku: "DEMO-TSH-004",
+    status: "analyzed",
+    extracted_features: {
+      material: "heavy-cotton",
+      style: "streetwear",
+      fit: "oversized",
+      neckline: "crew",
+      sleeve: "half",
+      color: "grey",
+      pattern: "solid",
+      occasion: "casual"
+    }
+  },
+  {
+    name: "Stretch Slim Jeans",
+    category: "pants",
+    subcategory: "jeans",
     price: 2299,
     original_price: 2799,
-    description: "Mid-rise slim-straight jeans with 2% stretch for comfort. Dark indigo wash with classic 5-pocket styling.",
-    tags: ["denim", "stretch", "slim-straight", "mid-rise", "casual"],
+    description: "Mid-rise slim-fit jeans with 2% stretch for comfort. Dark indigo wash with classic 5-pocket styling.",
+    tags: ["denim", "stretch", "slim-fit", "mid-rise", "jeans"],
     brand: "Lovable Apparel",
-    sku: "DEMO-JNS-001",
+    sku: "DEMO-PNT-001",
     status: "analyzed",
     extracted_features: {
       material: "stretch-denim",
       style: "casual",
-      fit: "slim-straight",
+      fit: "slim",
       rise: "mid",
       color: "dark-indigo",
       pattern: "solid",
@@ -1116,15 +1160,15 @@ const DEMO_PRODUCTS = [
     }
   },
   {
-    name: "Comfort Chino Trousers",
-    category: "trousers",
-    subcategory: "smart-casual",
+    name: "Comfort Chinos",
+    category: "pants",
+    subcategory: "chinos",
     price: 1699,
     original_price: 1999,
     description: "Stretch cotton chinos with regular fit. Versatile smart-casual option for work-to-weekend wear.",
     tags: ["chino", "stretch", "regular-fit", "smart-casual", "versatile"],
     brand: "Lovable Apparel",
-    sku: "DEMO-TRS-001",
+    sku: "DEMO-PNT-002",
     status: "analyzed",
     extracted_features: {
       material: "cotton-stretch",
@@ -1137,15 +1181,36 @@ const DEMO_PRODUCTS = [
     }
   },
   {
+    name: "Relaxed Fit Trousers",
+    category: "pants",
+    subcategory: "trousers",
+    price: 1899,
+    original_price: 2299,
+    description: "Relaxed fit cotton trousers with pleated front. Perfect for formal and semi-formal occasions.",
+    tags: ["trousers", "relaxed-fit", "pleated", "formal", "cotton"],
+    brand: "Lovable Apparel",
+    sku: "DEMO-PNT-003",
+    status: "analyzed",
+    extracted_features: {
+      material: "cotton",
+      style: "formal",
+      fit: "relaxed",
+      rise: "high",
+      color: "charcoal",
+      pattern: "solid",
+      occasion: "formal"
+    }
+  },
+  {
     name: "Athletic Joggers",
-    category: "joggers",
-    subcategory: "athleisure",
+    category: "pants",
+    subcategory: "joggers",
     price: 1299,
     original_price: 1599,
     description: "Moisture-wicking joggers with tapered fit. Zippered pockets and elastic cuffs for active lifestyle.",
     tags: ["joggers", "athleisure", "moisture-wicking", "tapered", "active"],
     brand: "Lovable Apparel",
-    sku: "DEMO-JOG-001",
+    sku: "DEMO-PNT-004",
     status: "analyzed",
     extracted_features: {
       material: "polyester-blend",
@@ -1155,71 +1220,6 @@ const DEMO_PRODUCTS = [
       color: "charcoal",
       pattern: "solid",
       occasion: "active-casual"
-    }
-  },
-  {
-    name: "Relaxed Hoodie",
-    category: "hoodies",
-    subcategory: "casual",
-    price: 1799,
-    original_price: 2199,
-    description: "French terry hoodie with kangaroo pocket. Relaxed fit for layering comfort in cooler weather.",
-    tags: ["hoodie", "french-terry", "relaxed-fit", "casual", "layering"],
-    brand: "Lovable Apparel",
-    sku: "DEMO-HOD-001",
-    status: "analyzed",
-    extracted_features: {
-      material: "french-terry",
-      style: "casual",
-      fit: "relaxed",
-      neckline: "hood",
-      sleeve: "full",
-      color: "grey-melange",
-      pattern: "solid",
-      occasion: "casual-weekend"
-    }
-  },
-  {
-    name: "Casual Cotton Shorts",
-    category: "shorts",
-    subcategory: "casual",
-    price: 999,
-    original_price: 1199,
-    description: "Cotton blend shorts with above-knee length. Elastic waistband with drawstring for comfort fit.",
-    tags: ["shorts", "cotton", "casual", "summer", "comfort"],
-    brand: "Lovable Apparel",
-    sku: "DEMO-SHR-001",
-    status: "analyzed",
-    extracted_features: {
-      material: "cotton-blend",
-      style: "casual",
-      fit: "regular",
-      length: "above-knee",
-      color: "olive",
-      pattern: "solid",
-      occasion: "summer-casual"
-    }
-  },
-  {
-    name: "Smart Polo Shirt",
-    category: "polo",
-    subcategory: "smart-casual",
-    price: 1199,
-    original_price: 1499,
-    description: "Pique cotton polo with classic fit. Ribbed collar and cuffs for smart-casual versatility.",
-    tags: ["polo", "pique", "classic-fit", "smart-casual", "versatile"],
-    brand: "Lovable Apparel",
-    sku: "DEMO-POL-001",
-    status: "analyzed",
-    extracted_features: {
-      material: "pique-cotton",
-      style: "smart-casual",
-      fit: "classic",
-      neckline: "polo-collar",
-      sleeve: "half",
-      color: "burgundy",
-      pattern: "solid",
-      occasion: "work-casual"
     }
   }
 ];

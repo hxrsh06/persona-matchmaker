@@ -8,6 +8,40 @@ import { useToast } from "@/hooks/use-toast";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import type { Json } from "@/integrations/supabase/types";
 
+// Banned intimate wear terms to filter out from personas
+const BANNED_INTIMATE_TERMS = [
+  "bra", "bralette", "sports bra", "t-shirt bra", "panty", "panties", 
+  "lingerie", "innerwear", "underwear", "thong", "bikini", "camisole",
+  "shapewear", "nightwear", "sleepwear", "chemise", "teddy", "bodysuit",
+  "corset", "bustier", "slip", "negligee", "strap", "underwire", "padded",
+  "push-up", "strapless", "convertible bra", "nursing bra", "maternity bra"
+];
+
+// Check if persona contains any banned intimate terms
+const hasIntimateTerms = (persona: Persona): boolean => {
+  const checkJson = (obj: Json): boolean => {
+    if (typeof obj === "string") {
+      const lower = obj.toLowerCase();
+      return BANNED_INTIMATE_TERMS.some(term => lower.includes(term));
+    }
+    if (Array.isArray(obj)) {
+      return obj.some(item => checkJson(item));
+    }
+    if (obj && typeof obj === "object") {
+      return Object.values(obj).some(val => checkJson(val as Json));
+    }
+    return false;
+  };
+  
+  return (
+    checkJson(persona.product_preferences) ||
+    checkJson(persona.attribute_vector) ||
+    (persona.description && BANNED_INTIMATE_TERMS.some(term => 
+      persona.description!.toLowerCase().includes(term)
+    ))
+  );
+};
+
 interface Persona {
   id: string;
   name: string;
@@ -107,7 +141,9 @@ const Personas = () => {
         variant: "destructive",
       });
     } else {
-      setPersonas(data || []);
+      // Filter out personas with intimate wear terms
+      const filteredPersonas = (data || []).filter(p => !hasIntimateTerms(p));
+      setPersonas(filteredPersonas);
     }
     setLoading(false);
   };
