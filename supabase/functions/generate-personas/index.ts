@@ -286,11 +286,24 @@ serve(async (req) => {
       console.log(`Created persona: ${basePersona.name} with ${expandedAttributes.attributeVector.length} attributes`);
     }
 
+    // Create sample demo products
+    console.log("Creating demo products...");
+    const demoProducts = await createDemoProducts(supabase, tenantId);
+    console.log(`Created ${demoProducts.length} demo products`);
+
+    // Create sample analysis results for demo
+    if (generatedPersonas.length > 0 && demoProducts.length > 0) {
+      console.log("Creating demo analysis results...");
+      await createDemoAnalysisResults(supabase, tenantId, generatedPersonas, demoProducts);
+      console.log("Demo analysis results created");
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         tenantId,
         personasCreated: generatedPersonas.length,
+        productsCreated: demoProducts.length,
         personas: generatedPersonas.map(p => ({
           id: p.id,
           name: p.name,
@@ -469,4 +482,188 @@ function generateDefaultAttributeVector(basePersona: typeof BASE_PERSONAS[0]) {
   }
   
   return vector;
+}
+
+// Demo data helper functions
+const DEMO_PRODUCTS = [
+  {
+    name: "Cotton Comfort Bralette",
+    category: "bralettes",
+    subcategory: "everyday",
+    price: 799,
+    original_price: 999,
+    description: "Soft cotton bralette perfect for daily wear with light support and breathable fabric",
+    tags: ["cotton", "comfortable", "everyday", "wireless"],
+    brand: "Demo Brand",
+    sku: "DEMO-BRA-001",
+    status: "analyzed",
+    extracted_features: {
+      material: "cotton",
+      style: "bralette",
+      support: "light",
+      wire: false,
+      padding: "removable",
+      color: "nude"
+    }
+  },
+  {
+    name: "Lace Trim Push-Up",
+    category: "bras",
+    subcategory: "push-up",
+    price: 1299,
+    original_price: 1599,
+    description: "Elegant lace trim push-up bra with underwire for enhanced support and lift",
+    tags: ["lace", "push-up", "underwire", "evening"],
+    brand: "Demo Brand",
+    sku: "DEMO-BRA-002",
+    status: "analyzed",
+    extracted_features: {
+      material: "lace",
+      style: "push-up",
+      support: "high",
+      wire: true,
+      padding: "molded",
+      color: "black"
+    }
+  },
+  {
+    name: "Sports Performance Bra",
+    category: "sports",
+    subcategory: "high-impact",
+    price: 1099,
+    original_price: 1299,
+    description: "High-impact sports bra with moisture-wicking fabric and adjustable straps",
+    tags: ["sports", "high-impact", "moisture-wicking", "active"],
+    brand: "Demo Brand",
+    sku: "DEMO-BRA-003",
+    status: "analyzed",
+    extracted_features: {
+      material: "polyester-blend",
+      style: "sports",
+      support: "high",
+      wire: false,
+      padding: "removable",
+      color: "gray"
+    }
+  },
+  {
+    name: "Seamless T-Shirt Bra",
+    category: "bras",
+    subcategory: "t-shirt",
+    price: 899,
+    original_price: 1099,
+    description: "Invisible seamless bra perfect under fitted tops with smooth cups",
+    tags: ["seamless", "t-shirt", "smooth", "everyday"],
+    brand: "Demo Brand",
+    sku: "DEMO-BRA-004",
+    status: "analyzed",
+    extracted_features: {
+      material: "microfiber",
+      style: "t-shirt",
+      support: "medium",
+      wire: false,
+      padding: "molded",
+      color: "nude"
+    }
+  },
+  {
+    name: "Cotton Bikini 3-Pack",
+    category: "panties",
+    subcategory: "bikini",
+    price: 599,
+    original_price: 749,
+    description: "Comfortable cotton bikini set in assorted colors for everyday wear",
+    tags: ["cotton", "bikini", "multi-pack", "everyday"],
+    brand: "Demo Brand",
+    sku: "DEMO-PAN-001",
+    status: "analyzed",
+    extracted_features: {
+      material: "cotton",
+      style: "bikini",
+      coverage: "medium",
+      color: "assorted"
+    }
+  }
+];
+
+async function createDemoProducts(supabase: any, tenantId: string) {
+  const products = [];
+  
+  for (const productData of DEMO_PRODUCTS) {
+    const { data: product, error } = await supabase
+      .from("products")
+      .insert({
+        ...productData,
+        tenant_id: tenantId,
+        currency: "INR"
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error(`Failed to create demo product ${productData.name}:`, error);
+      continue;
+    }
+    
+    products.push(product);
+  }
+  
+  return products;
+}
+
+async function createDemoAnalysisResults(
+  supabase: any, 
+  tenantId: string, 
+  personas: any[], 
+  products: any[]
+) {
+  const results = [];
+  
+  for (const product of products) {
+    for (const persona of personas) {
+      // Generate realistic-looking scores based on product/persona match
+      const baseScore = 40 + Math.random() * 40; // 40-80 base
+      const likeProbability = Math.round(baseScore + (Math.random() * 20 - 10)); // +/- 10 variance
+      
+      const priceMultiplier = 0.8 + Math.random() * 0.4; // 0.8-1.2
+      const priceFloor = Math.round(product.price * 0.7);
+      const priceCeiling = Math.round(product.price * 1.3);
+      const priceSweetSpot = Math.round(product.price * priceMultiplier);
+      
+      const matchFactors = [
+        { factor: "Material preference", score: Math.round(50 + Math.random() * 40), weight: 0.2 },
+        { factor: "Price alignment", score: Math.round(50 + Math.random() * 40), weight: 0.25 },
+        { factor: "Style match", score: Math.round(50 + Math.random() * 40), weight: 0.2 },
+        { factor: "Brand affinity", score: Math.round(50 + Math.random() * 40), weight: 0.15 },
+        { factor: "Category interest", score: Math.round(50 + Math.random() * 40), weight: 0.2 }
+      ];
+      
+      const { data: result, error } = await supabase
+        .from("analysis_results")
+        .insert({
+          tenant_id: tenantId,
+          product_id: product.id,
+          persona_id: persona.id,
+          like_probability: Math.min(95, Math.max(25, likeProbability)),
+          confidence_score: 70 + Math.round(Math.random() * 25),
+          price_floor: priceFloor,
+          price_sweet_spot: priceSweetSpot,
+          price_ceiling: priceCeiling,
+          price_elasticity: -0.2 - Math.random() * 0.6,
+          match_factors: matchFactors,
+          explanation: `This ${product.category} has a ${likeProbability > 60 ? 'strong' : 'moderate'} match with ${persona.name} based on material preferences and price sensitivity.`
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error(`Failed to create analysis for ${product.name} x ${persona.name}:`, error);
+        continue;
+      }
+      
+      results.push(result);
+    }
+  }
+  
+  return results;
 }
