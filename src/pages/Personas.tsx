@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Users, TrendingUp, ShoppingBag, Target, DollarSign } from "lucide-react";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -24,37 +23,37 @@ interface Persona {
   is_active: boolean;
 }
 
-// Fixed persona definitions for display (3 Female, 3 Male)
-const PERSONA_FEATURES: Record<string, { icon: typeof Users; highlights: string[]; gender: string }> = {
-  "Priya - The Trend-Conscious Millennial": {
-    icon: TrendingUp,
+// Enterprise persona definitions
+const PERSONA_DATA: Record<string, { segment: string; highlights: string[]; gender: string }> = {
+  "Priya Sharma": {
+    segment: "Trend-Conscious Millennial",
     gender: "Female",
-    highlights: ["Follows Instagram trends", "Monthly shopper", "Mid-range budget", "Style-conscious"],
+    highlights: ["Social media influenced", "Monthly purchase cycle", "Mid-range pricing", "Style-driven decisions"],
   },
-  "Ananya - The Quality Seeker": {
-    icon: ShoppingBag,
+  "Ananya Mehta": {
+    segment: "Quality-Conscious Professional",
     gender: "Female",
-    highlights: ["Quality over quantity", "Brand loyal", "Premium budget", "Timeless style"],
+    highlights: ["Quality over quantity", "High brand loyalty", "Premium segment", "Investment mindset"],
   },
-  "Sneha - The Budget Fashionista": {
-    icon: DollarSign,
+  "Sneha Patel": {
+    segment: "Budget-Conscious Student",
     gender: "Female",
-    highlights: ["Deal hunter", "Sale-driven", "Price sensitive", "Variety seeker"],
+    highlights: ["Price-sensitive", "Sale-driven purchases", "High variety seeking", "Marketplace preference"],
   },
-  "Rahul - The Casual Comfort Guy": {
-    icon: Target,
+  "Rahul Kumar": {
+    segment: "Comfort-Focused Professional",
     gender: "Male",
-    highlights: ["Comfort-first", "Basics buyer", "Practical choices", "Low maintenance"],
+    highlights: ["Comfort-first approach", "Basics-oriented", "Practical choices", "Brand-loyal for fit"],
   },
-  "Arjun - The Style-Forward Professional": {
-    icon: ShoppingBag,
+  "Arjun Verma": {
+    segment: "Style-Forward Executive",
     gender: "Male",
-    highlights: ["Premium brands", "Image-conscious", "High budget", "Quality-driven"],
+    highlights: ["Premium brands", "Image-conscious", "High spend capacity", "Quality-driven"],
   },
-  "Vikram - The Streetwear Enthusiast": {
-    icon: TrendingUp,
+  "Vikram Joshi": {
+    segment: "Streetwear Enthusiast",
     gender: "Male",
-    highlights: ["Streetwear culture", "Hype-driven", "Exclusivity seeker", "Trend-setter"],
+    highlights: ["Drop-culture driven", "Exclusivity seeker", "Community-oriented", "Trend-setter"],
   },
 };
 
@@ -99,38 +98,49 @@ const Personas = () => {
 
   const getTopCategories = (persona: Persona) => {
     const prefs = persona.product_preferences as { categories?: string[] };
-    return prefs?.categories?.slice(0, 3) || [];
+    return prefs?.categories?.slice(0, 4) || [];
   };
 
   const getPriceRange = (persona: Persona) => {
-    const behavior = persona.price_behavior as { tshirtRange?: number[]; jeansRange?: number[] };
+    const behavior = persona.price_behavior as { tshirtRange?: number[]; expectedPricePoint?: number };
     if (behavior?.tshirtRange) {
-      return `₹${behavior.tshirtRange[0]} - ₹${behavior.tshirtRange[1]}`;
+      return `${behavior.tshirtRange[0].toLocaleString()} - ${behavior.tshirtRange[1].toLocaleString()}`;
     }
-    return "Varies";
+    return "Variable";
   };
 
   const getBrandLoyalty = (persona: Persona) => {
     const psychology = persona.brand_psychology as { brandLoyalty?: number };
     const loyalty = psychology?.brandLoyalty || 0.5;
-    if (loyalty >= 0.7) return "High";
-    if (loyalty >= 0.4) return "Medium";
-    return "Low";
+    if (loyalty >= 0.7) return { label: "High", value: loyalty };
+    if (loyalty >= 0.4) return { label: "Medium", value: loyalty };
+    return { label: "Low", value: loyalty };
   };
 
-  const getPersonaFeatures = (personaName: string) => {
-    return PERSONA_FEATURES[personaName] || { icon: Users, highlights: [], gender: "Unknown" };
+  const getPersonaData = (personaName: string) => {
+    // Extract first name for matching
+    const firstName = personaName.split(" ")[0];
+    const match = Object.entries(PERSONA_DATA).find(([key]) => key.startsWith(firstName));
+    return match ? match[1] : { segment: "Consumer Persona", highlights: [], gender: "Unknown" };
+  };
+
+  const getElasticity = (persona: Persona) => {
+    const behavior = persona.price_behavior as { elasticity?: number };
+    const elasticity = Math.abs(behavior?.elasticity || 0.5);
+    if (elasticity >= 0.7) return "High";
+    if (elasticity >= 0.4) return "Medium";
+    return "Low";
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-48" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-64" />
+            <Skeleton key={i} className="h-72" />
           ))}
         </div>
       </div>
@@ -138,92 +148,112 @@ const Personas = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Consumer Personas</h1>
-          <p className="text-muted-foreground">
-            6 fixed consumer profiles to test your products against
-          </p>
-        </div>
+    <div className="space-y-8">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-medium tracking-tight">Consumer Personas</h1>
+        <p className="text-muted-foreground">
+          Six enterprise-grade consumer profiles for product-market fit analysis
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {personas.map((persona) => {
-          const features = getPersonaFeatures(persona.name);
-          const IconComponent = features.icon;
+          const data = getPersonaData(persona.name);
+          const loyalty = getBrandLoyalty(persona);
           
           return (
             <Card
               key={persona.id}
-              className="cursor-pointer hover:shadow-md transition-shadow border-border/50"
+              className="cursor-pointer transition-all duration-200 hover:shadow-lg border-border/40 bg-card"
               onClick={() => setSelectedPersona(persona)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <span className="text-4xl">{persona.avatar_emoji}</span>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                      <IconComponent className="w-3 h-3 text-primary" />
-                    </div>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg truncate">{persona.name}</CardTitle>
-                      <Badge variant={features.gender === "Female" ? "default" : "secondary"} className="text-xs shrink-0">
-                        {features.gender}
-                      </Badge>
-                    </div>
-                    <CardDescription className="truncate">
-                      {getAttributeCount(persona)} attributes
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1.5">
+                    <CardTitle className="text-lg font-medium">{persona.name}</CardTitle>
+                    <CardDescription className="text-xs font-medium uppercase tracking-wide">
+                      {data.segment}
                     </CardDescription>
                   </div>
+                  <Badge 
+                    variant={data.gender === "Female" ? "default" : "secondary"} 
+                    className="text-xs font-normal"
+                  >
+                    {data.gender}
+                  </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {persona.description || "AI-generated consumer persona"}
+              
+              <CardContent className="space-y-5">
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                  {persona.description}
                 </p>
                 
-                {/* Key Highlights */}
-                {features.highlights.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {features.highlights.slice(0, 4).map((highlight) => (
-                      <Badge key={highlight} variant="outline" className="text-xs">
-                        {highlight}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {/* Product Categories */}
+                {/* Key Characteristics */}
                 <div className="flex flex-wrap gap-1.5">
-                  {getTopCategories(persona).map((cat) => (
-                    <Badge key={cat} variant="secondary" className="text-xs">
-                      {cat}
-                    </Badge>
+                  {data.highlights.slice(0, 3).map((highlight) => (
+                    <span 
+                      key={highlight} 
+                      className="text-xs px-2 py-1 rounded-md bg-secondary text-secondary-foreground"
+                    >
+                      {highlight}
+                    </span>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 pt-2">
-                  <div className="text-center p-2 rounded-md bg-muted/50">
-                    <p className="text-xs text-muted-foreground">Age</p>
-                    <p className="font-medium text-sm">
-                      {(persona.demographics as { ageRange?: string })?.ageRange || "25-34"}
-                    </p>
+                {/* Categories */}
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Primary Categories
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {getTopCategories(persona).map((cat) => (
+                      <span 
+                        key={cat} 
+                        className="text-xs px-2 py-0.5 rounded border border-border text-foreground"
+                      >
+                        {cat}
+                      </span>
+                    ))}
                   </div>
-                  <div className="text-center p-2 rounded-md bg-muted/50">
-                    <p className="text-xs text-muted-foreground">Price</p>
-                    <p className="font-medium text-xs">
+                </div>
+
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Price Range
+                    </p>
+                    <p className="text-sm font-medium">
                       {getPriceRange(persona)}
                     </p>
                   </div>
-                  <div className="text-center p-2 rounded-md bg-muted/50">
-                    <p className="text-xs text-muted-foreground">Loyalty</p>
-                    <p className="font-medium text-sm">
-                      {getBrandLoyalty(persona)}
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Loyalty
+                    </p>
+                    <p className="text-sm font-medium">
+                      {loyalty.label}
                     </p>
                   </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Elasticity
+                    </p>
+                    <p className="text-sm font-medium">
+                      {getElasticity(persona)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Attribute Count */}
+                <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <span className="text-xs text-muted-foreground">
+                    {getAttributeCount(persona)} behavioral attributes
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    View details
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -232,12 +262,14 @@ const Personas = () => {
       </div>
 
       {personas.length === 0 && (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Users className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="font-medium mb-1">Personas not loaded yet</h3>
-            <p className="text-sm text-muted-foreground text-center">
-              Complete the onboarding to set up your 6 consumer personas
+        <Card className="border-dashed border-border/60">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-4">
+              <span className="text-lg font-medium text-muted-foreground">0</span>
+            </div>
+            <h3 className="font-medium mb-1">No personas configured</h3>
+            <p className="text-sm text-muted-foreground text-center max-w-sm">
+              Complete the onboarding process to generate your six consumer personas
             </p>
           </CardContent>
         </Card>
