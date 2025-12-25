@@ -12,16 +12,16 @@ interface ProductFeatures {
   fabric: string[];
   color: string;
   colorFamily: string;
-  coverage: string;
-  support: string;
-  strapType: string;
-  padding: string;
+  fit: string;
+  rise?: string;
+  length?: string;
+  neckline?: string;
+  sleeve?: string;
   occasion: string[];
   style: string;
   priceSegment: string;
-  hasLace: boolean;
-  hasWire: boolean;
-  isSeamless: boolean;
+  hasStretch: boolean;
+  isPrinted: boolean;
   patternType: string;
 }
 
@@ -170,10 +170,10 @@ serve(async (req) => {
 });
 
 async function extractProductFeatures(product: any, apiKey: string): Promise<ProductFeatures> {
-  const systemPrompt = `You are an expert fashion product analyst specializing in lingerie, innerwear, and intimate apparel. 
+  const systemPrompt = `You are an expert fashion product analyst specializing in casual and formal apparel including t-shirts, shirts, jeans, trousers, shorts, joggers, hoodies, and polo shirts. 
 Analyze the product and extract structured features. Be precise and use standardized terminology.`;
 
-  const userPrompt = `Analyze this product and extract features:
+  const userPrompt = `Analyze this apparel product and extract features:
 
 Product Name: ${product.name}
 Brand: ${product.brand || "Unknown"}
@@ -183,7 +183,7 @@ Subcategory: ${product.subcategory || ""}
 Price: ₹${product.price}
 Tags: ${product.tags?.join(", ") || "None"}
 
-Extract and return structured features.`;
+Extract and return structured features for this apparel item.`;
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -201,28 +201,70 @@ Extract and return structured features.`;
         type: "function",
         function: {
           name: "extract_features",
-          description: "Extract product features",
+          description: "Extract apparel product features",
           parameters: {
             type: "object",
             properties: {
-              category: { type: "string", enum: ["bra", "panty", "sportswear", "nightwear", "camisole", "shapewear", "set"] },
+              category: { 
+                type: "string", 
+                enum: ["tshirt", "shirt", "jeans", "trousers", "shorts", "joggers", "hoodie", "polo", "jacket", "sweater"] 
+              },
               subcategory: { type: "string" },
-              fabric: { type: "array", items: { type: "string" } },
+              fabric: { 
+                type: "array", 
+                items: { type: "string" },
+                description: "Fabrics like cotton, polyester, denim, linen, fleece, modal, spandex"
+              },
               color: { type: "string" },
-              colorFamily: { type: "string", enum: ["nude", "pastel", "bold", "dark", "print", "white", "black"] },
-              coverage: { type: "string", enum: ["low", "medium", "high", "full"] },
-              support: { type: "string", enum: ["none", "light", "medium", "high", "maximum"] },
-              strapType: { type: "string", enum: ["regular", "multiway", "strapless", "racerback", "halter", "none"] },
-              padding: { type: "string", enum: ["none", "light", "moderate", "push-up", "heavy"] },
-              occasion: { type: "array", items: { type: "string" } },
-              style: { type: "string", enum: ["basic", "sporty", "romantic", "sexy", "practical", "trendy"] },
-              priceSegment: { type: "string", enum: ["budget", "mid-range", "premium", "luxury"] },
-              hasLace: { type: "boolean" },
-              hasWire: { type: "boolean" },
-              isSeamless: { type: "boolean" },
-              patternType: { type: "string", enum: ["solid", "print", "lace", "mesh", "stripes", "floral"] }
+              colorFamily: { 
+                type: "string", 
+                enum: ["neutral", "earth", "pastel", "bold", "dark", "print", "white", "black", "blue", "grey"] 
+              },
+              fit: { 
+                type: "string", 
+                enum: ["slim", "regular", "relaxed", "oversized", "athletic", "tailored"] 
+              },
+              rise: { 
+                type: "string", 
+                enum: ["low", "mid", "high"],
+                description: "For bottoms only"
+              },
+              length: { 
+                type: "string", 
+                enum: ["cropped", "regular", "long", "short", "above-knee", "below-knee"],
+                description: "Length of the garment"
+              },
+              neckline: { 
+                type: "string", 
+                enum: ["crew", "v-neck", "collar", "polo", "henley", "mock", "hoodie", "none"],
+                description: "For tops only"
+              },
+              sleeve: { 
+                type: "string", 
+                enum: ["sleeveless", "short", "half", "three-quarter", "full", "rolled"],
+                description: "Sleeve length for tops"
+              },
+              occasion: { 
+                type: "array", 
+                items: { type: "string" },
+                description: "e.g., casual, work, weekend, sports, party, travel"
+              },
+              style: { 
+                type: "string", 
+                enum: ["basic", "sporty", "smart-casual", "formal", "streetwear", "trendy", "classic"] 
+              },
+              priceSegment: { 
+                type: "string", 
+                enum: ["budget", "mid-range", "premium", "luxury"] 
+              },
+              hasStretch: { type: "boolean" },
+              isPrinted: { type: "boolean" },
+              patternType: { 
+                type: "string", 
+                enum: ["solid", "striped", "checked", "graphic", "floral", "geometric", "abstract"] 
+              }
             },
-            required: ["category", "fabric", "color", "colorFamily", "coverage", "support", "style", "priceSegment"]
+            required: ["category", "fabric", "color", "colorFamily", "fit", "occasion", "style", "priceSegment", "patternType"]
           }
         }
       }],
@@ -232,22 +274,18 @@ Extract and return structured features.`;
 
   if (!response.ok) {
     console.error("AI extraction failed:", await response.text());
-    // Return default features
+    // Return default features for general apparel
     return {
-      category: product.category || "bra",
+      category: product.category || "tshirt",
       fabric: ["cotton"],
       color: "neutral",
-      colorFamily: "nude",
-      coverage: "medium",
-      support: "medium",
-      strapType: "regular",
-      padding: "light",
-      occasion: ["daily"],
+      colorFamily: "neutral",
+      fit: "regular",
+      occasion: ["casual"],
       style: "basic",
-      priceSegment: product.price < 500 ? "budget" : product.price < 1000 ? "mid-range" : "premium",
-      hasLace: false,
-      hasWire: false,
-      isSeamless: false,
+      priceSegment: product.price < 800 ? "budget" : product.price < 1500 ? "mid-range" : "premium",
+      hasStretch: false,
+      isPrinted: false,
       patternType: "solid"
     };
   }
@@ -269,16 +307,17 @@ async function scoreProductAgainstPersona(
   apiKey: string
 ): Promise<PersonaScore> {
   
-  const systemPrompt = `You are an expert consumer behavior analyst. Score how well a product matches a consumer persona.
+  const systemPrompt = `You are an expert consumer behavior analyst specializing in apparel and fashion retail. Score how well a product matches a consumer persona.
 Consider demographics, psychographics, shopping preferences, and price sensitivity.
 Be precise with probability scores and provide actionable insights.`;
 
-  const userPrompt = `Score this product against the persona:
+  const userPrompt = `Score this apparel product against the persona:
 
 PRODUCT:
 - Name: ${product.name}
 - Category: ${features.category}
 - Style: ${features.style}
+- Fit: ${features.fit}
 - Price: ₹${product.price}
 - Features: ${JSON.stringify(features)}
 

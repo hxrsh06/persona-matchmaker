@@ -38,25 +38,25 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert fashion product analyst specializing in lingerie, innerwear, and intimate apparel.
+            content: `You are an expert fashion product analyst specializing in casual and formal apparel including t-shirts, shirts, jeans, trousers, shorts, joggers, hoodies, and polo shirts.
 Analyze product images and extract visual features with high precision.
-Focus on: color, pattern, fabric texture, coverage level, style category, strap design, and overall aesthetic.`
+Focus on: color, pattern, fabric texture, fit/silhouette, style category, neckline, sleeve design, and overall aesthetic.`
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `Analyze this lingerie/innerwear product image and extract visual features.
+                text: `Analyze this apparel product image and extract visual features.
 Return structured data about:
 1. Primary color and color family
-2. Pattern type (solid, print, lace, mesh, etc.)
-3. Coverage level (low, medium, high, full)
-4. Style classification (basic, sporty, romantic, sexy, practical, trendy)
+2. Pattern type (solid, striped, checked, graphic, etc.)
+3. Fit type (slim, regular, relaxed, oversized)
+4. Style classification (basic, sporty, smart-casual, formal, streetwear, trendy)
 5. Visible fabric types
-6. Strap/design details
+6. Neckline and sleeve details (for tops)
 7. Overall quality perception (budget, mid-range, premium, luxury)
-8. Target occasion (daily, special, sports, sleep, date night)`
+8. Target occasion (casual, work, weekend, sports, party)`
               },
               {
                 type: "image_url",
@@ -69,38 +69,42 @@ Return structured data about:
           type: "function",
           function: {
             name: "extract_visual_features",
-            description: "Extract visual features from product image",
+            description: "Extract visual features from apparel product image",
             parameters: {
               type: "object",
               properties: {
                 primaryColor: { type: "string" },
                 colorFamily: { 
                   type: "string", 
-                  enum: ["nude", "pastel", "bold", "dark", "print", "white", "black", "multicolor"] 
+                  enum: ["neutral", "earth", "pastel", "bold", "dark", "print", "white", "black", "blue", "grey", "multicolor"] 
                 },
                 patternType: { 
                   type: "string", 
-                  enum: ["solid", "print", "lace", "mesh", "stripes", "floral", "geometric", "animal"] 
+                  enum: ["solid", "striped", "checked", "graphic", "floral", "geometric", "abstract", "camo", "tie-dye"] 
                 },
-                coverageLevel: { 
+                fitType: { 
                   type: "string", 
-                  enum: ["minimal", "low", "medium", "high", "full"] 
+                  enum: ["slim", "regular", "relaxed", "oversized", "athletic", "tailored"] 
                 },
                 styleCategory: { 
                   type: "string", 
-                  enum: ["basic", "sporty", "romantic", "sexy", "practical", "trendy", "elegant"] 
+                  enum: ["basic", "sporty", "smart-casual", "formal", "streetwear", "trendy", "classic", "athleisure"] 
                 },
                 visibleFabrics: { 
                   type: "array", 
                   items: { type: "string" } 
                 },
-                hasLace: { type: "boolean" },
-                hasMesh: { type: "boolean" },
-                hasWire: { type: "boolean" },
-                isSeamless: { type: "boolean" },
-                strapStyle: { 
+                hasStretch: { type: "boolean" },
+                hasTexture: { type: "boolean" },
+                isPrinted: { type: "boolean" },
+                isDistressed: { type: "boolean" },
+                necklineStyle: { 
                   type: "string", 
-                  enum: ["regular", "thin", "wide", "multiway", "strapless", "racerback", "halter", "none"] 
+                  enum: ["crew", "v-neck", "collar", "polo", "henley", "mock", "hoodie", "scoop", "boat", "none"] 
+                },
+                sleeveStyle: { 
+                  type: "string", 
+                  enum: ["sleeveless", "short", "half", "three-quarter", "full", "rolled", "raglan", "none"] 
                 },
                 qualityPerception: { 
                   type: "string", 
@@ -117,7 +121,7 @@ Return structured data about:
                 confidenceScore: { type: "number", minimum: 0, maximum: 100 }
               },
               required: [
-                "primaryColor", "colorFamily", "patternType", "coverageLevel", 
+                "primaryColor", "colorFamily", "patternType", "fitType", 
                 "styleCategory", "visibleFabrics", "qualityPerception", "confidenceScore"
               ]
             }
@@ -169,10 +173,10 @@ Return structured data about:
       color: visualFeatures.primaryColor,
       colorFamily: visualFeatures.colorFamily,
       patternType: visualFeatures.patternType,
-      coverage: visualFeatures.coverageLevel,
+      fit: visualFeatures.fitType,
       style: visualFeatures.styleCategory,
-      hasLace: visualFeatures.hasLace,
-      isSeamless: visualFeatures.isSeamless,
+      hasStretch: visualFeatures.hasStretch,
+      isPrinted: visualFeatures.isPrinted,
     };
 
     await supabase
