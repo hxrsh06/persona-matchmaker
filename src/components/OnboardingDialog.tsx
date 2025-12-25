@@ -11,6 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2 } from "lucide-react";
 
@@ -19,10 +26,20 @@ interface OnboardingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const BRAND_SEGMENTS = [
+  { value: "lite", label: "Lite", description: "Budget-friendly, value-focused" },
+  { value: "premium", label: "Premium", description: "Quality-driven, mid-to-high pricing" },
+  { value: "luxury", label: "Luxury", description: "High-end, exclusive positioning" },
+  { value: "streetwear", label: "Streetwear", description: "Trendy, youth-focused, style-driven" },
+];
+
 const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
   const { createTenant } = useTenant();
   const { toast } = useToast();
   const [brandName, setBrandName] = useState("");
+  const [segment, setSegment] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatingPersonas, setGeneratingPersonas] = useState(false);
 
@@ -35,20 +52,34 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
     const tenant = await createTenant(brandName, slug);
     
     if (tenant) {
+      // Update tenant settings with brand info
+      await supabase
+        .from("tenants")
+        .update({
+          settings: {
+            segment,
+            priceRange: {
+              min: parseInt(minPrice) || 0,
+              max: parseInt(maxPrice) || 0,
+            },
+          },
+        })
+        .eq("id", tenant.id);
+
       toast({
         title: "Brand created!",
-        description: "Now generating AI personas...",
+        description: "Now setting up your 6 consumer personas...",
       });
 
       // Generate personas
       setGeneratingPersonas(true);
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        
         const response = await supabase.functions.invoke("generate-personas", {
           body: { 
             tenantId: tenant.id,
-            customizeForBrand: brandName
+            customizeForBrand: brandName,
+            brandSegment: segment,
+            priceRange: { min: parseInt(minPrice) || 0, max: parseInt(maxPrice) || 0 },
           },
         });
 
@@ -59,7 +90,7 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
         const { personasCreated, productsCreated } = response.data;
         toast({
           title: "Setup complete!",
-          description: `Created ${personasCreated} AI personas and ${productsCreated || 0} demo products for you to explore.`,
+          description: `Created ${personasCreated} consumer personas and ${productsCreated || 0} demo products.`,
         });
       } catch (error) {
         console.error("Error generating personas:", error);
@@ -82,6 +113,8 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
     setLoading(false);
   };
 
+  const isFormValid = brandName.trim() && segment && minPrice && maxPrice;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -91,7 +124,7 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
           </div>
           <DialogTitle className="text-center">Welcome to Lovable Twin</DialogTitle>
           <DialogDescription className="text-center">
-            Let's set up your brand to get started with AI-powered product analysis
+            Tell us about your brand to set up personalized consumer personas
           </DialogDescription>
         </DialogHeader>
 
@@ -108,23 +141,65 @@ const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="segment">Brand Segment</Label>
+            <Select value={segment} onValueChange={setSegment} disabled={loading || generatingPersonas}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your brand segment" />
+              </SelectTrigger>
+              <SelectContent>
+                {BRAND_SEGMENTS.map((seg) => (
+                  <SelectItem key={seg.value} value={seg.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{seg.label}</span>
+                      <span className="text-xs text-muted-foreground">{seg.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Usual Price Range (₹)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                placeholder="Min"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                disabled={loading || generatingPersonas}
+                min={0}
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="number"
+                placeholder="Max"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                disabled={loading || generatingPersonas}
+                min={0}
+              />
+            </div>
+          </div>
+
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={loading || generatingPersonas || !brandName.trim()}
+            disabled={loading || generatingPersonas || !isFormValid}
           >
             {loading || generatingPersonas ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {generatingPersonas ? "Generating AI Personas..." : "Creating Brand..."}
+                {generatingPersonas ? "Setting up personas..." : "Creating Brand..."}
               </>
             ) : (
-              "Create Brand & Generate Personas"
+              "Create Brand & Set Up Personas"
             )}
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
-            We'll create 5 AI personas and sample products to help you explore
+            We'll set up 6 fixed consumer personas for you to test your products against
           </p>
         </form>
       </DialogContent>
