@@ -6,205 +6,108 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Base persona templates from Lovable's spec
+// 6 Fixed Personas for General Clothing (3 Female, 3 Male)
 const BASE_PERSONAS = [
+  // Female Personas
   {
-    name: "Comfort-First Millennial",
-    emoji: "💼",
-    baseDescription: "Busy professional prioritizing comfort and practicality in daily wear",
+    name: "Priya - The Trend-Conscious Millennial",
+    emoji: "👩",
+    gender: "female",
+    baseDescription: "A 25-32 year old urban professional woman who follows fashion trends on Instagram and loves updating her wardrobe with stylish tshirts, jeans, and casual wear.",
     demographics: {
-      ageRange: "22-28",
-      incomeRange: "25000-50000",
+      ageRange: "25-32",
+      gender: "Female",
+      incomeRange: "40000-80000",
       cityTier: "Metro",
       relationship: "single/dating",
-      household: "alone/roommates"
+      household: "alone/roommates",
+      occupation: "IT/Corporate Professional"
     },
     psychographics: {
-      coreValues: ["comfort", "practicality", "quality"],
-      lifestyle: "9-6 corporate with gym 3x/week",
-      fashionOrientation: "basics-only",
+      coreValues: ["style", "social-validation", "comfort"],
+      lifestyle: "Urban trendy, active on social media, weekend outings",
+      fashionOrientation: "trend-follower",
       modestySensitivity: "medium"
     },
     shoppingPreferences: {
-      channel: ["online"],
-      triggers: ["new arrivals", "influencer content"],
-      basketBehavior: "single items",
-      returnTolerance: "medium"
-    },
-    productPreferences: {
-      categories: ["bralette", "sports bra", "seamless", "t-shirt bra"],
-      fabricPreferences: ["cotton", "modal", "microfiber"],
-      colorPreferences: ["nudes", "pastels", "neutrals"],
-      coveragePreference: "medium",
-      supportPreference: "low-medium",
-      wirePreference: "non-wired"
-    },
-    priceBehavior: {
-      braRange: [699, 999],
-      pantyRange: [199, 399],
-      setRange: [899, 1399],
-      elasticity: -0.4,
-      discountDependence: "medium",
-      ltvOrientation: "frequent-low"
-    },
-    brandPsychology: {
-      priceAnchor: "mid-range",
-      expectedPricePoint: 799,
-      brandLoyalty: 0.5,
-      premiumWillingness: 0.4,
-      valuePerception: 0.7,
-      qualityExpectation: 0.6,
-      brandSwitchingTendency: 0.5,
-      priceMemory: 0.6,
-      referencePointSensitivity: 0.5
-    }
-  },
-  {
-    name: "Trend-Driven Gen Z",
-    emoji: "✨",
-    baseDescription: "Fashion-forward college student, highly influenced by social media trends",
-    demographics: {
-      ageRange: "18-22",
-      incomeRange: "10000-25000",
-      cityTier: "Metro/Tier1",
-      relationship: "single",
-      household: "hostel/family"
-    },
-    psychographics: {
-      coreValues: ["self-expression", "trends", "affordability"],
-      lifestyle: "College, high social media usage, weekend outings",
-      fashionOrientation: "fashion-first",
-      modestySensitivity: "low"
-    },
-    shoppingPreferences: {
-      channel: ["online", "instagram-shops"],
-      triggers: ["influencer content", "limited drops", "discounts"],
-      basketBehavior: "impulse purchases",
+      channel: ["online", "mall"],
+      triggers: ["trending styles", "reviews", "influencer content"],
+      basketBehavior: "monthly updates",
       returnTolerance: "high"
     },
     productPreferences: {
-      categories: ["bralette", "lace", "sets", "fun prints"],
-      fabricPreferences: ["lace", "polyamide", "mesh"],
-      colorPreferences: ["bold", "prints", "black"],
-      coveragePreference: "low",
-      supportPreference: "none-light",
-      wirePreference: "non-wired"
+      categories: ["tshirts", "jeans", "dresses", "tops", "casual-wear"],
+      fabricPreferences: ["cotton", "denim", "linen", "blends"],
+      colorPreferences: ["pastels", "trending-colors", "neutrals"],
+      fitPreference: "fitted-to-relaxed",
+      stylePreference: "casual-chic"
     },
     priceBehavior: {
-      braRange: [399, 699],
-      pantyRange: [149, 299],
-      setRange: [599, 999],
-      elasticity: -0.7,
+      tshirtRange: [800, 1500],
+      jeansRange: [1500, 2500],
+      dressRange: [1200, 2500],
+      elasticity: -0.5,
       discountDependence: "high",
-      ltvOrientation: "occasional-high"
+      ltvOrientation: "frequent-moderate"
     },
     brandPsychology: {
-      priceAnchor: "budget-trendy",
-      expectedPricePoint: 499,
-      brandLoyalty: 0.2,
-      premiumWillingness: 0.3,
-      valuePerception: 0.8,
-      qualityExpectation: 0.4,
-      brandSwitchingTendency: 0.9,
-      priceMemory: 0.4,
-      referencePointSensitivity: 0.8
-    }
-  },
-  {
-    name: "Young Mom (WFH)",
-    emoji: "👶",
-    baseDescription: "Work-from-home mom prioritizing comfort, durability, and easy maintenance",
-    demographics: {
-      ageRange: "28-35",
-      incomeRange: "30000-60000",
-      cityTier: "Metro/Tier1",
-      relationship: "married",
-      household: "nuclear family with kids"
-    },
-    psychographics: {
-      coreValues: ["comfort", "durability", "value"],
-      lifestyle: "WFH, mom duties, limited personal time",
-      fashionOrientation: "functional-first",
-      modestySensitivity: "high"
-    },
-    shoppingPreferences: {
-      channel: ["online"],
-      triggers: ["reviews", "word-of-mouth", "value packs"],
-      basketBehavior: "bulk/multi-buy",
-      returnTolerance: "low"
-    },
-    productPreferences: {
-      categories: ["full-coverage bra", "nursing bra", "nightwear", "cotton panties"],
-      fabricPreferences: ["cotton", "modal", "breathable"],
-      colorPreferences: ["nudes", "pastels", "neutrals"],
-      coveragePreference: "high",
-      supportPreference: "high",
-      wirePreference: "both"
-    },
-    priceBehavior: {
-      braRange: [599, 999],
-      pantyRange: [149, 349],
-      setRange: [799, 1499],
-      elasticity: -0.3,
-      discountDependence: "low",
-      ltvOrientation: "frequent-low"
-    },
-    brandPsychology: {
-      priceAnchor: "value-quality",
-      expectedPricePoint: 749,
-      brandLoyalty: 0.7,
+      priceAnchor: "mid-range",
+      expectedPricePoint: 1200,
+      brandLoyalty: 0.4,
       premiumWillingness: 0.5,
-      valuePerception: 0.8,
-      qualityExpectation: 0.7,
-      brandSwitchingTendency: 0.3,
-      priceMemory: 0.8,
+      valuePerception: 0.7,
+      qualityExpectation: 0.6,
+      brandSwitchingTendency: 0.6,
+      priceMemory: 0.5,
       referencePointSensitivity: 0.6
     }
   },
   {
-    name: "Premium Comfort Seeker",
-    emoji: "👑",
-    baseDescription: "Established professional investing in quality pieces for everyday luxury",
+    name: "Ananya - The Quality Seeker",
+    emoji: "👩‍💼",
+    gender: "female",
+    baseDescription: "A 30-42 year old working woman who prioritizes quality fabrics and timeless styles. Prefers well-fitted formal and smart casual clothing for work and social occasions.",
     demographics: {
-      ageRange: "35-44",
-      incomeRange: "50000-100000",
-      cityTier: "Metro",
+      ageRange: "30-42",
+      gender: "Female",
+      incomeRange: "80000-150000",
+      cityTier: "Metro/Tier1",
       relationship: "married/committed",
-      household: "DINK/small family"
+      household: "nuclear family",
+      occupation: "Senior Professional/Manager"
     },
     psychographics: {
-      coreValues: ["quality", "comfort", "self-care"],
-      lifestyle: "Corporate, health-conscious, occasional luxury",
-      fashionOrientation: "premium-basics",
+      coreValues: ["quality", "durability", "elegance"],
+      lifestyle: "Corporate professional, health-conscious, occasional luxury",
+      fashionOrientation: "classic-premium",
       modestySensitivity: "medium"
     },
     shoppingPreferences: {
-      channel: ["online", "brand websites", "occasional retail"],
-      triggers: ["quality reviews", "brand reputation", "new launches"],
-      basketBehavior: "considered purchases",
-      returnTolerance: "medium"
+      channel: ["brand-stores", "online-premium"],
+      triggers: ["fabric-quality", "fit", "brand-reputation"],
+      basketBehavior: "quarterly wardrobe updates",
+      returnTolerance: "low"
     },
     productPreferences: {
-      categories: ["push-up", "padded", "premium cotton", "shapewear"],
-      fabricPreferences: ["premium cotton", "modal", "silk blend"],
-      colorPreferences: ["nudes", "pastels", "classic black"],
-      coveragePreference: "medium-high",
-      supportPreference: "high",
-      wirePreference: "both"
+      categories: ["formal-tops", "trousers", "blazers", "premium-tshirts", "smart-casual"],
+      fabricPreferences: ["premium-cotton", "linen", "silk-blend", "wool-blend"],
+      colorPreferences: ["neutrals", "earth-tones", "classic-colors"],
+      fitPreference: "tailored",
+      stylePreference: "smart-casual"
     },
     priceBehavior: {
-      braRange: [999, 1799],
-      pantyRange: [299, 599],
-      setRange: [1299, 2499],
-      elasticity: -0.2,
+      tshirtRange: [1500, 3000],
+      trousersRange: [2500, 5000],
+      blazerRange: [4000, 8000],
+      elasticity: -0.25,
       discountDependence: "low",
       ltvOrientation: "infrequent-high"
     },
     brandPsychology: {
       priceAnchor: "premium",
-      expectedPricePoint: 1299,
+      expectedPricePoint: 2500,
       brandLoyalty: 0.8,
-      premiumWillingness: 0.9,
+      premiumWillingness: 0.85,
       valuePerception: 0.5,
       qualityExpectation: 0.9,
       brandSwitchingTendency: 0.2,
@@ -213,105 +116,216 @@ const BASE_PERSONAS = [
     }
   },
   {
-    name: "Value-Conscious Shopper",
-    emoji: "💰",
-    baseDescription: "Budget-aware shopper seeking best value without compromising basics",
+    name: "Sneha - The Budget Fashionista",
+    emoji: "👧",
+    gender: "female",
+    baseDescription: "A 20-26 year old college student or early career woman who wants fashionable clothes at budget prices. Shops during sales and compares prices extensively.",
     demographics: {
-      ageRange: "20-30",
+      ageRange: "20-26",
+      gender: "Female",
       incomeRange: "15000-35000",
-      cityTier: "Tier2/Tier3",
-      relationship: "varies",
-      household: "family"
+      cityTier: "All cities",
+      relationship: "single",
+      household: "hostel/family",
+      occupation: "Student/Entry-level"
     },
     psychographics: {
-      coreValues: ["value", "practicality", "durability"],
-      lifestyle: "Student/early career, budget-focused",
-      fashionOrientation: "basics-only",
-      modestySensitivity: "high"
+      coreValues: ["affordability", "variety", "trendy"],
+      lifestyle: "College/early career, budget-conscious, high social media usage",
+      fashionOrientation: "fast-fashion",
+      modestySensitivity: "varies"
     },
     shoppingPreferences: {
-      channel: ["online", "local stores"],
-      triggers: ["discounts", "deals", "value packs"],
-      basketBehavior: "planned purchases",
+      channel: ["online-marketplaces", "local-stores", "sale-hunting"],
+      triggers: ["discounts", "flash-sales", "variety"],
+      basketBehavior: "frequent-small-purchases",
       returnTolerance: "high"
     },
     productPreferences: {
-      categories: ["t-shirt bra", "basic panty", "cotton sets"],
-      fabricPreferences: ["cotton", "polyamide"],
-      colorPreferences: ["nudes", "pastels", "white"],
-      coveragePreference: "medium-high",
-      supportPreference: "medium",
-      wirePreference: "non-wired"
+      categories: ["tshirts", "kurtis", "jeans", "casual-tops", "fusion-wear"],
+      fabricPreferences: ["cotton", "polyester-blend", "rayon"],
+      colorPreferences: ["bright", "prints", "trendy-colors"],
+      fitPreference: "regular-to-oversized",
+      stylePreference: "casual-fusion"
     },
     priceBehavior: {
-      braRange: [299, 599],
-      pantyRange: [99, 249],
-      setRange: [399, 799],
+      tshirtRange: [300, 700],
+      jeansRange: [600, 1200],
+      kurtiRange: [400, 900],
       elasticity: -0.8,
-      discountDependence: "high",
+      discountDependence: "very-high",
       ltvOrientation: "frequent-low"
     },
     brandPsychology: {
       priceAnchor: "budget",
-      expectedPricePoint: 399,
-      brandLoyalty: 0.3,
-      premiumWillingness: 0.1,
+      expectedPricePoint: 500,
+      brandLoyalty: 0.2,
+      premiumWillingness: 0.15,
       valuePerception: 0.9,
-      qualityExpectation: 0.5,
-      brandSwitchingTendency: 0.8,
+      qualityExpectation: 0.4,
+      brandSwitchingTendency: 0.9,
       priceMemory: 0.9,
-      referencePointSensitivity: 0.9
+      referencePointSensitivity: 0.85
     }
   },
+  // Male Personas
   {
-    name: "Fashion-Forward Professional",
-    emoji: "👠",
-    baseDescription: "Style-conscious working woman who balances fashion trends with professional requirements",
+    name: "Rahul - The Casual Comfort Guy",
+    emoji: "👨",
+    gender: "male",
+    baseDescription: "A 25-35 year old man who prefers comfortable, no-fuss clothing. Buys basics like plain tshirts, joggers, and casual shirts that work for office and weekends.",
     demographics: {
-      ageRange: "26-35",
+      ageRange: "25-35",
+      gender: "Male",
       incomeRange: "40000-80000",
-      cityTier: "Metro",
+      cityTier: "Metro/Tier1",
       relationship: "varies",
-      household: "alone/partner"
+      household: "alone/family",
+      occupation: "IT/Corporate Professional"
     },
     psychographics: {
-      coreValues: ["style", "confidence", "versatility"],
-      lifestyle: "Corporate career, active social life, fitness enthusiast",
-      fashionOrientation: "fashion-aware",
-      modestySensitivity: "medium-low"
+      coreValues: ["comfort", "simplicity", "versatility"],
+      lifestyle: "Practical, gym-goer, low maintenance fashion approach",
+      fashionOrientation: "basics-focused",
+      modestySensitivity: "low"
     },
     shoppingPreferences: {
-      channel: ["online", "brand websites", "premium retail"],
-      triggers: ["new collections", "seasonal trends", "influencer recommendations"],
-      basketBehavior: "curated purchases",
+      channel: ["online", "quick-commerce"],
+      triggers: ["comfort", "fit", "easy-care"],
+      basketBehavior: "quarterly-bulk-basics",
       returnTolerance: "medium"
     },
     productPreferences: {
-      categories: ["push-up", "plunge", "lace bralette", "matching sets"],
-      fabricPreferences: ["lace", "satin", "modal", "microfiber"],
-      colorPreferences: ["black", "wine", "emerald", "nudes"],
-      coveragePreference: "medium",
-      supportPreference: "medium-high",
-      wirePreference: "both"
+      categories: ["tshirts", "polo-shirts", "chinos", "joggers", "casual-shirts"],
+      fabricPreferences: ["cotton", "cotton-stretch", "jersey"],
+      colorPreferences: ["navy", "black", "grey", "white", "earth-tones"],
+      fitPreference: "regular-to-relaxed",
+      stylePreference: "casual-athleisure"
     },
     priceBehavior: {
-      braRange: [899, 1499],
-      pantyRange: [249, 499],
-      setRange: [1099, 1999],
-      elasticity: -0.35,
-      discountDependence: "medium-low",
-      ltvOrientation: "moderate-high"
+      tshirtRange: [600, 1200],
+      jeansRange: [1200, 2000],
+      shirtRange: [800, 1500],
+      elasticity: -0.45,
+      discountDependence: "moderate",
+      ltvOrientation: "moderate-frequency"
     },
     brandPsychology: {
-      priceAnchor: "mid-premium",
-      expectedPricePoint: 1099,
+      priceAnchor: "mid-range",
+      expectedPricePoint: 999,
       brandLoyalty: 0.6,
-      premiumWillingness: 0.7,
-      valuePerception: 0.6,
-      qualityExpectation: 0.75,
+      premiumWillingness: 0.4,
+      valuePerception: 0.75,
+      qualityExpectation: 0.6,
       brandSwitchingTendency: 0.4,
-      priceMemory: 0.5,
-      referencePointSensitivity: 0.4
+      priceMemory: 0.6,
+      referencePointSensitivity: 0.5
+    }
+  },
+  {
+    name: "Arjun - The Style-Forward Professional",
+    emoji: "👔",
+    gender: "male",
+    baseDescription: "A 28-40 year old image-conscious professional who invests in premium brands for formal shirts, well-fitted trousers, and designer casual wear.",
+    demographics: {
+      ageRange: "28-40",
+      gender: "Male",
+      incomeRange: "100000-200000",
+      cityTier: "Metro",
+      relationship: "married/committed",
+      household: "DINK/small family",
+      occupation: "Senior Manager/Business Owner"
+    },
+    psychographics: {
+      coreValues: ["status", "quality", "style"],
+      lifestyle: "Ambitious, networking-focused, brand-conscious",
+      fashionOrientation: "premium-fashion",
+      modestySensitivity: "low"
+    },
+    shoppingPreferences: {
+      channel: ["brand-stores", "premium-online"],
+      triggers: ["brand", "fit", "style-quotient"],
+      basketBehavior: "considered-premium-purchases",
+      returnTolerance: "low"
+    },
+    productPreferences: {
+      categories: ["formal-shirts", "trousers", "blazers", "premium-tshirts", "jackets"],
+      fabricPreferences: ["premium-cotton", "linen", "wool-blend", "luxury-blends"],
+      colorPreferences: ["classic-navy", "charcoal", "white", "subtle-patterns"],
+      fitPreference: "slim-tailored",
+      stylePreference: "formal-smart-casual"
+    },
+    priceBehavior: {
+      tshirtRange: [2000, 4000],
+      shirtRange: [3000, 6000],
+      trousersRange: [3500, 7000],
+      elasticity: -0.2,
+      discountDependence: "low",
+      ltvOrientation: "infrequent-high"
+    },
+    brandPsychology: {
+      priceAnchor: "premium",
+      expectedPricePoint: 3500,
+      brandLoyalty: 0.85,
+      premiumWillingness: 0.9,
+      valuePerception: 0.4,
+      qualityExpectation: 0.95,
+      brandSwitchingTendency: 0.15,
+      priceMemory: 0.6,
+      referencePointSensitivity: 0.25
+    }
+  },
+  {
+    name: "Vikram - The Streetwear Enthusiast",
+    emoji: "🧢",
+    gender: "male",
+    baseDescription: "An 18-28 year old Gen-Z male who follows streetwear culture, loves graphic tees, oversized fits, and urban fashion influenced by hip-hop and sneaker culture.",
+    demographics: {
+      ageRange: "18-28",
+      gender: "Male",
+      incomeRange: "20000-60000",
+      cityTier: "Metro",
+      relationship: "single",
+      household: "hostel/family",
+      occupation: "Student/Creative Professional"
+    },
+    psychographics: {
+      coreValues: ["self-expression", "uniqueness", "cool-factor"],
+      lifestyle: "Urban creative, social media native, trend-setter",
+      fashionOrientation: "streetwear-hype",
+      modestySensitivity: "low"
+    },
+    shoppingPreferences: {
+      channel: ["online-drops", "streetwear-stores", "instagram"],
+      triggers: ["design", "exclusivity", "brand-hype"],
+      basketBehavior: "impulse-hype-purchases",
+      returnTolerance: "low-for-hyped"
+    },
+    productPreferences: {
+      categories: ["graphic-tees", "hoodies", "cargo-pants", "oversized-tshirts", "joggers"],
+      fabricPreferences: ["heavy-cotton", "fleece", "canvas"],
+      colorPreferences: ["black", "earth-tones", "bold-graphics", "limited-edition"],
+      fitPreference: "oversized-relaxed",
+      stylePreference: "streetwear-urban"
+    },
+    priceBehavior: {
+      tshirtRange: [1000, 3000],
+      hoodieRange: [2000, 5000],
+      cargoRange: [1500, 4000],
+      elasticity: -0.3,
+      discountDependence: "low-for-exclusives",
+      ltvOrientation: "variable-hype-driven"
+    },
+    brandPsychology: {
+      priceAnchor: "hype-driven",
+      expectedPricePoint: 2000,
+      brandLoyalty: 0.5,
+      premiumWillingness: 0.8,
+      valuePerception: 0.3,
+      qualityExpectation: 0.5,
+      brandSwitchingTendency: 0.7,
+      priceMemory: 0.4,
+      referencePointSensitivity: 0.3
     }
   }
 ];
@@ -454,8 +468,9 @@ async function expandPersonaAttributes(
   attributeVector: { name: string; value: number; category: string }[];
 }> {
   
-  const systemPrompt = `You are an expert consumer behavior researcher creating detailed customer personas for an Indian lingerie/innerwear brand.
+  const systemPrompt = `You are an expert consumer behavior researcher creating detailed customer personas for an Indian clothing/apparel brand.
 Generate rich, realistic attributes based on VALS framework and AIO (Activities, Interests, Opinions) methodology.
+Focus on general clothing categories: tshirts, shirts, jeans, trousers, dresses, tops, casual wear, formal wear.
 Each persona should have 100-150 normalized attributes (0-1 scale) for ML compatibility.`;
 
   const userPrompt = `Expand this base persona into 100+ detailed attributes:
@@ -607,8 +622,8 @@ function generateDefaultAttributeVector(basePersona: typeof BASE_PERSONAS[0]) {
   
   // Product preferences
   vector.push({ name: "prefers_cotton", value: basePersona.productPreferences.fabricPreferences.includes("cotton") ? 0.8 : 0.3, category: "product" });
-  vector.push({ name: "prefers_lace", value: basePersona.productPreferences.fabricPreferences.includes("lace") ? 0.8 : 0.2, category: "product" });
-  vector.push({ name: "prefers_wireless", value: basePersona.productPreferences.wirePreference === "non-wired" ? 0.9 : 0.4, category: "product" });
+  vector.push({ name: "prefers_premium_fabrics", value: basePersona.productPreferences.fabricPreferences.some(f => f.includes("premium") || f.includes("linen")) ? 0.8 : 0.2, category: "product" });
+  vector.push({ name: "prefers_casual_style", value: basePersona.productPreferences.stylePreference.includes("casual") ? 0.8 : 0.4, category: "product" });
   
   // Brand psychology attributes
   vector.push({ name: "brand_loyalty", value: basePersona.brandPsychology.brandLoyalty, category: "brand_psychology" });

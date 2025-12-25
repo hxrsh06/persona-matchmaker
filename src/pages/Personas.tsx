@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Users, TrendingUp, ShoppingBag, Target, DollarSign, Heart } from "lucide-react";
+import { Users, TrendingUp, ShoppingBag, Target, DollarSign } from "lucide-react";
 import PersonaDetailSheet from "@/components/personas/PersonaDetailSheet";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -24,31 +24,37 @@ interface Persona {
   is_active: boolean;
 }
 
-// Fixed persona definitions for display
-const PERSONA_FEATURES: Record<string, { icon: typeof Users; highlights: string[] }> = {
-  "Comfort-First Millennial": {
-    icon: Target,
-    highlights: ["Values comfort over style", "Online shopper", "Mid-range budget", "Quality conscious"],
-  },
-  "Trend-Driven Gen Z": {
+// Fixed persona definitions for display (3 Female, 3 Male)
+const PERSONA_FEATURES: Record<string, { icon: typeof Users; highlights: string[]; gender: string }> = {
+  "Priya - The Trend-Conscious Millennial": {
     icon: TrendingUp,
-    highlights: ["Follows influencers", "Impulse buyer", "Budget-conscious", "Style-first"],
+    gender: "Female",
+    highlights: ["Follows Instagram trends", "Monthly shopper", "Mid-range budget", "Style-conscious"],
   },
-  "Young Mom (WFH)": {
-    icon: Heart,
-    highlights: ["Prioritizes durability", "Bulk buyer", "Reviews-driven", "Value seeker"],
-  },
-  "Premium Comfort Seeker": {
+  "Ananya - The Quality Seeker": {
     icon: ShoppingBag,
-    highlights: ["Quality investment", "Brand loyal", "Premium budget", "Self-care focused"],
+    gender: "Female",
+    highlights: ["Quality over quantity", "Brand loyal", "Premium budget", "Timeless style"],
   },
-  "Value-Conscious Shopper": {
+  "Sneha - The Budget Fashionista": {
     icon: DollarSign,
-    highlights: ["Deal hunter", "Planned purchases", "Price sensitive", "Practical choices"],
+    gender: "Female",
+    highlights: ["Deal hunter", "Sale-driven", "Price sensitive", "Variety seeker"],
   },
-  "Fashion-Forward Professional": {
+  "Rahul - The Casual Comfort Guy": {
     icon: Target,
-    highlights: ["Style conscious", "Brand aware", "Moderate splurger", "Trend follower"],
+    gender: "Male",
+    highlights: ["Comfort-first", "Basics buyer", "Practical choices", "Low maintenance"],
+  },
+  "Arjun - The Style-Forward Professional": {
+    icon: ShoppingBag,
+    gender: "Male",
+    highlights: ["Premium brands", "Image-conscious", "High budget", "Quality-driven"],
+  },
+  "Vikram - The Streetwear Enthusiast": {
+    icon: TrendingUp,
+    gender: "Male",
+    highlights: ["Streetwear culture", "Hype-driven", "Exclusivity seeker", "Trend-setter"],
   },
 };
 
@@ -97,9 +103,9 @@ const Personas = () => {
   };
 
   const getPriceRange = (persona: Persona) => {
-    const behavior = persona.price_behavior as { braRange?: number[] };
-    if (behavior?.braRange) {
-      return `₹${behavior.braRange[0]} - ₹${behavior.braRange[1]}`;
+    const behavior = persona.price_behavior as { tshirtRange?: number[]; jeansRange?: number[] };
+    if (behavior?.tshirtRange) {
+      return `₹${behavior.tshirtRange[0]} - ₹${behavior.tshirtRange[1]}`;
     }
     return "Varies";
   };
@@ -113,7 +119,7 @@ const Personas = () => {
   };
 
   const getPersonaFeatures = (personaName: string) => {
-    return PERSONA_FEATURES[personaName] || { icon: Users, highlights: [] };
+    return PERSONA_FEATURES[personaName] || { icon: Users, highlights: [], gender: "Unknown" };
   };
 
   if (loading) {
@@ -162,7 +168,12 @@ const Personas = () => {
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <CardTitle className="text-lg truncate">{persona.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg truncate">{persona.name}</CardTitle>
+                      <Badge variant={features.gender === "Female" ? "default" : "secondary"} className="text-xs shrink-0">
+                        {features.gender}
+                      </Badge>
+                    </div>
                     <CardDescription className="truncate">
                       {getAttributeCount(persona)} attributes
                     </CardDescription>
