@@ -12,17 +12,54 @@ serve(async (req) => {
   }
 
   try {
-    const { productId, imageUrl } = await req.json();
+    // JWT validation
+    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
+    if (!authHeader?.toLowerCase().startsWith("bearer ")) {
+      return new Response(
+        JSON.stringify({ code: 401, message: "Missing JWT" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const jwt = authHeader.split(" ")[1];
+
+    const { productId, imageUrl, tenantId } = await req.json();
     
     if (!productId || !imageUrl) {
       throw new Error("Product ID and image URL are required");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabaseAuth = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+
+    // Validate user
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
+    if (userError || !userData?.user) {
+      return new Response(
+        JSON.stringify({ code: 401, message: "Invalid JWT" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check tenant access if tenantId provided
+    if (tenantId) {
+      const { data: hasAccess } = await supabase.rpc("has_tenant_access", {
+        _tenant_id: tenantId,
+        _user_id: userData.user.id,
+      });
+      if (!hasAccess) {
+        return new Response(
+          JSON.stringify({ code: 403, message: "Forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     console.log(`Extracting features from image for product ${productId}`);
 
