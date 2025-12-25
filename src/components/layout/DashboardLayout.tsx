@@ -1,7 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenant } from "@/hooks/useTenant";
+import OnboardingDialog from "@/components/OnboardingDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sidebar,
   SidebarContent,
@@ -53,9 +55,16 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, signOut } = useAuth();
-  const { tenant, tenants, switchTenant } = useTenant();
+  const { tenant, tenants, loading: tenantLoading, switchTenant } = useTenant();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!tenantLoading && !tenant) {
+      setShowOnboarding(true);
+    }
+  }, [tenant, tenantLoading]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -63,6 +72,34 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
+
+  // Show loading while checking tenant status
+  if (tenantLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-muted-foreground text-sm">Loading your workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show onboarding if no tenant
+  if (!tenant) {
+    return (
+      <OnboardingDialog 
+        open={showOnboarding} 
+        onOpenChange={(open) => {
+          setShowOnboarding(open);
+          if (!open) {
+            // Refresh the page to reload tenant data
+            window.location.reload();
+          }
+        }} 
+      />
+    );
+  }
 
   return (
     <SidebarProvider>
