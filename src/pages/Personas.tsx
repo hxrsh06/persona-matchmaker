@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/hooks/useTenant";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -139,10 +139,6 @@ const Personas = () => {
     }
   }, [tenant, toast, loadPersonas]);
 
-  const getAttributeCount = (persona: Persona) => {
-    return Array.isArray(persona.attribute_vector) ? persona.attribute_vector.length : 0;
-  };
-
   const getTopCategories = (persona: Persona) => {
     const prefs = persona.product_preferences as { categories?: string[] };
     return prefs?.categories?.slice(0, 4) || [];
@@ -185,9 +181,9 @@ const Personas = () => {
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-10 w-40" />
         </div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="space-y-3">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-            <Skeleton key={i} className="h-64" />
+            <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
       </div>
@@ -195,11 +191,11 @@ const Personas = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-medium tracking-tight">Consumer Personas</h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             10 canonical apparel personas (5 female, 5 male) with 100+ attributes each
           </p>
         </div>
@@ -215,7 +211,7 @@ const Personas = () => {
             <span className="text-xs">Synthetic v0</span>
           </Badge>
           {personas.length > 0 ? (
-            <Button onClick={refreshAttributes} disabled={actionLoading} variant="outline">
+            <Button onClick={refreshAttributes} disabled={actionLoading} variant="outline" size="sm">
               {actionLoading ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -229,7 +225,7 @@ const Personas = () => {
               )}
             </Button>
           ) : (
-            <Button onClick={seedPersonas} disabled={actionLoading}>
+            <Button onClick={seedPersonas} disabled={actionLoading} size="sm">
               {actionLoading ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -249,9 +245,9 @@ const Personas = () => {
       {/* Locked Universe Banner */}
       {isUniverseLocked && (
         <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="flex items-center gap-4 py-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Lock className="w-5 h-5 text-primary" />
+          <CardContent className="flex items-center gap-4 py-3 px-4">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">Persona Universe: Locked</p>
@@ -268,14 +264,14 @@ const Personas = () => {
 
       {/* Data Source Banner */}
       <Card className="border-dashed bg-muted/30">
-        <CardContent className="flex items-center gap-4 py-4">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Database className="w-5 h-5 text-primary" />
+        <CardContent className="flex items-center gap-4 py-3 px-4">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Database className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">Data Source: modeled_v0 (Synthetic)</p>
             <p className="text-xs text-muted-foreground">
-              All persona attributes are hypothesis-driven. Values will be refined with real swipe data from the Tinder-for-fashion app.
+              All persona attributes are hypothesis-driven. Values will be refined with real swipe data.
             </p>
           </div>
           <Badge variant="secondary" className="text-xs">
@@ -285,107 +281,83 @@ const Personas = () => {
       </Card>
 
       {personas.length > 0 ? (
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="space-y-2">
           {personas.map((persona) => (
             <Card
               key={persona.id}
-              className="cursor-pointer transition-all duration-200 hover:shadow-lg border-border/40 bg-card"
+              className="cursor-pointer transition-all duration-200 hover:bg-muted/50 border-border/40"
               onClick={() => setSelectedPersona(persona)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${
-                        persona.gender === "female" 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-secondary text-secondary-foreground"
-                      }`}>
-                        {persona.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm font-medium truncate">{persona.name}</CardTitle>
-                        <p className="text-[10px] text-muted-foreground">{getAgeBand(persona)}</p>
-                      </div>
+              <CardContent className="py-3 px-4">
+                <div className="flex items-center gap-4">
+                  {/* Avatar & Name */}
+                  <div className="flex items-center gap-3 w-[200px] shrink-0">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
+                      persona.gender === "female" 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-secondary text-secondary-foreground"
+                    }`}>
+                      {persona.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{persona.name}</p>
+                      <p className="text-xs text-muted-foreground">{getAgeBand(persona)}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Badge 
-                      variant={persona.gender === "female" ? "default" : "secondary"} 
-                      className="text-[10px] font-normal shrink-0"
-                    >
-                      {persona.gender === "female" ? "F" : "M"}
-                    </Badge>
-                    <div className="flex items-center gap-0.5">
-                      <Lock className="w-2.5 h-2.5 text-muted-foreground" />
-                      <Badge variant="outline" className="text-[8px] py-0">
-                        v0
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-3">
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                  {persona.description}
-                </p>
 
-                {/* Categories */}
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Top Categories
+                  {/* Gender Badge */}
+                  <Badge 
+                    variant={persona.gender === "female" ? "default" : "secondary"} 
+                    className="text-xs shrink-0 w-16 justify-center"
+                  >
+                    {persona.gender === "female" ? "Female" : "Male"}
+                  </Badge>
+
+                  {/* Description */}
+                  <p className="text-xs text-muted-foreground flex-1 min-w-0 line-clamp-1 hidden lg:block">
+                    {persona.description}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+
+                  {/* Categories */}
+                  <div className="hidden xl:flex items-center gap-1.5 shrink-0">
                     {getTopCategories(persona).slice(0, 3).map((cat) => (
                       <span 
                         key={cat} 
-                        className="text-[10px] px-1.5 py-0.5 rounded border border-border text-foreground"
+                        className="text-[11px] px-2 py-0.5 rounded border border-border text-foreground whitespace-nowrap"
                       >
                         {String(cat).replace(/_/g, " ")}
                       </span>
                     ))}
                   </div>
-                </div>
 
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
-                  <div className="space-y-0.5">
-                    <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                      T-shirt
-                    </p>
-                    <p className="text-[10px] font-medium truncate">
-                      {getPriceRange(persona)}
-                    </p>
+                  {/* Metrics */}
+                  <div className="hidden 2xl:flex items-center gap-4 shrink-0 text-xs">
+                    <div className="w-28 text-center">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">T-shirt Price</p>
+                      <p className="font-medium">{getPriceRange(persona)}</p>
+                    </div>
+                    <div className="w-16 text-center">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Loyalty</p>
+                      <p className="font-medium">{getBrandLoyalty(persona)}</p>
+                    </div>
+                    <div className="w-16 text-center">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Elasticity</p>
+                      <p className="font-medium capitalize">{getElasticity(persona)}</p>
+                    </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Loyalty
-                    </p>
-                    <p className="text-[10px] font-medium">
-                      {getBrandLoyalty(persona)}
-                    </p>
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Elasticity
-                    </p>
-                    <p className="text-[10px] font-medium capitalize">
-                      {getElasticity(persona)}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Segment Weight & Attributes */}
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <span className="text-[10px] text-muted-foreground">
-                    {getAttributeCount(persona)} attributes
-                  </span>
-                  {persona.segment_weight && (
-                    <Badge variant="outline" className="text-[10px]">
-                      {Math.round(persona.segment_weight * 100)}% weight
-                    </Badge>
-                  )}
+                  {/* Weight & Version */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {persona.segment_weight && (
+                      <Badge variant="outline" className="text-xs">
+                        {Math.round(persona.segment_weight * 100)}%
+                      </Badge>
+                    )}
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Lock className="w-3 h-3" />
+                      <span className="text-xs">v0</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
