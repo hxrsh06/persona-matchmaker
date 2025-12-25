@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FlaskConical, TrendingUp, Shirt, Palette, User, ShoppingCart, DollarSign, Smartphone, Heart, Sparkles } from "lucide-react";
+import { FlaskConical, TrendingUp, Shirt, Palette, User, ShoppingCart, DollarSign, Smartphone, Heart, Sparkles, Lock } from "lucide-react";
 import type { Json } from "@/integrations/supabase/types";
 
 interface Persona {
@@ -184,6 +184,10 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <SheetTitle className="text-xl">{persona.name}</SheetTitle>
+                <Badge variant="outline" className="gap-1 text-xs border-primary/50 text-primary">
+                  <Lock className="w-3 h-3" />
+                  Locked
+                </Badge>
                 <Badge variant="outline" className="gap-1 text-xs">
                   <FlaskConical className="w-3 h-3" />
                   v0
@@ -199,6 +203,17 @@ const PersonaDetailSheet = ({ persona, onClose }: PersonaDetailSheetProps) => {
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* Locked Persona Banner */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <Lock className="w-4 h-4 text-primary" />
+            <div className="flex-1">
+              <p className="text-xs font-medium">Fixed Persona Identity</p>
+              <p className="text-[10px] text-muted-foreground">
+                ID: <code className="bg-muted px-1 rounded">{persona.canonical_persona_id}</code> — Identity is immutable, only attributes can be updated.
+              </p>
+            </div>
+          </div>
+
           {/* Data Source Banner */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-dashed">
             <FlaskConical className="w-4 h-4 text-muted-foreground" />
