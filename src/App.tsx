@@ -13,6 +13,7 @@ import Products from "./pages/Products";
 import Personas from "./pages/Personas";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import Documentation from "./pages/Documentation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/docs" element={<Documentation />} />
       
       {/* Dashboard routes with shared wrapper */}
       <Route path="/dashboard" element={<DashboardWrapper />}>
